@@ -1,3 +1,5 @@
+@import "/home/badmaster67/.cache/matugen/waybar.css";
+
 * {
     font-family: "CommitMono Nerd Font Mono", monospace;
     font-size: 13px;
@@ -8,11 +10,11 @@
 
 window#waybar {
     background: transparent;
-    color: #e6e8f0;
+    color: @fg;
 }
 
 #waybar > box {
-    margin: 8px 12px 0 12px; 
+    margin: 8px 12px 0 12px;
 }
 
 /* DEEPER, DARKER, COOLER MODULE BACKGROUND */
@@ -22,76 +24,76 @@ window#waybar {
 #pulseaudio,
 #battery,
 #clock {
-    background: rgba(6, 2, 4, 0.92);
-    border: 1px solid rgba(30, 11, 13, 0.6);
+    background: alpha(@bg, 0.92);
+    border: 1px solid alpha(@muted, 0.6); /* surface_container_highest provides the border separation */
     border-radius: 12px;
     padding: 2px 14px;
     margin: 0 4px;
     font-weight: bold;
 }
 
-/* --- WORKSPACES (No box, clean floating text, red underline) --- */
+/* --- WORKSPACES --- */
 #tags {
-    background: transparent; /* No box! */
+    background: transparent;
     border: none;
     border-radius: 0;
     padding: 0;
-    margin: 0 8px; 
+    margin: 0 8px;
 }
 
 #tags button {
     background: transparent;
-    color: #5c3a3a; /* Dim dusty red - visible but clearly inactive */
+    color: alpha(@fg, 0.4); /* Dynamic dimming for inactive tags */
     padding: 4px 6px;
-    border-radius: 0; /* Sharp */
-    border-bottom: 2px solid transparent; 
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
 }
 
 /* Workspace has windows open on it */
 #tags button.occupied {
-    color: #e6e8f0; /* ICE WHITE text */
+    color: @white;
 }
 
 /* Workspace is currently active/focused */
 #tags button.focused {
-    color: #e6e8f0; /* ICE WHITE text */
-    border-bottom: 2px solid #ce2c3a; /* SCREAMING RED SHARP UNDERLINE */
+    color: @white;
+    border-bottom: 2px solid @red; /* Maps to colors.error from your template */
 }
 
 /* Workspace has an urgent window */
 #tags button.urgent {
-    color: #ce2c3a; /* SCREAMING RED text */
+    color: @red;
 }
 
 #tags button:hover {
-    background: rgba(230, 232, 240, 0.04);
-    color: #e6e8f0;
+    background: alpha(@fg, 0.04);
+    color: @fg;
 }
 
 /* --- COMBINED NOTIFICATION + CLOCK PILL --- */
 #custom-stats {
-    background: rgba(6, 2, 4, 0.92);
-    border: 1px solid rgba(30, 11, 13, 0.6);
+    background: alpha(@bg, 0.92);
+    border: 1px solid alpha(@muted, 0.6);
     border-radius: 12px;
     padding: 2px 14px;
     margin: 0 4px;
-    color: #c8ccd8;
+    color: @fg;
 }
 
 #clock {
-    background: rgba(6, 2, 4, 0.92);
-    border: 1px solid rgba(30, 11, 13, 0.6);
-    border-radius: 12px; /* Flat left, round right */
+    background: alpha(@bg, 0.92);
+    border: 1px solid alpha(@muted, 0.6);
+    border-radius: 12px;
     padding: 2px 14px;
-    margin: 0 4px; 
+    margin: 0 4px;
     font-weight: bold;
 }
 
 /* Notification glow state */
 #custom-swaync.notification {
-    color: #ce2c3a;
-    border-color: rgba(206, 44, 58, 0.6);
-    background: rgba(206, 44, 58, 0.15);
+    color: @red;
+    border-color: alpha(@red, 0.6);
+    background: alpha(@red, 0.15);
 }
 
 /* --- SYSTEM TRAY --- */
@@ -101,26 +103,26 @@ window#waybar {
 
 /* --- STATES / ALERTS --- */
 #bluetooth.connected {
-    color: #6bb3b3; 
+    color: @primary; /* Maps to colors.primary */
 }
 
 #pulseaudio.muted {
-    color: #ce2c3a; 
-    border-color: rgba(206, 44, 58, 0.5);
+    color: @red;
+    border-color: alpha(@red, 0.5);
 }
 
 #network.disconnected {
-    color: #ce2c3a;
+    color: @red;
 }
 
 #battery.warning:not(.charging) {
-    color: #ce2c3a;
-    border-color: rgba(206, 44, 58, 0.5);
+    color: @red;
+    border-color: alpha(@red, 0.5);
     animation: blink 1.5s linear infinite;
 }
 
 @keyframes blink {
     to {
-        background: rgba(206, 44, 58, 0.4);
+        background: alpha(@red, 0.4);
     }
 }

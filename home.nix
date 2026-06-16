@@ -16,6 +16,9 @@ in
     ".config/waybar".source = create_symlink "${dotfiles}/waybar";
     ".config/nvim".source = create_symlink "${dotfiles}/nvim";
     ".config/dunst".source = create_symlink "${dotfiles}/dunst";
+    ".config/matugen".source = create_symlink "${dotfiles}/matugen";
+    ".config/tmux".source = create_symlink "${dotfiles}/tmux";
+    ".config/btop".source = create_symlink "${dotfiles}/btop";
   };
 
   programs.git.enable = true;
@@ -37,6 +40,7 @@ in
     playerctl
     bc
     swaybg
+    matugen
 
     blueman
     networkmanagerapplet

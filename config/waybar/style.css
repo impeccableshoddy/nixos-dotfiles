@@ -1,104 +1,128 @@
-@define-color bg    #1a1b26; 
-@define-color fg    #a9b1d6; 
-@define-color blk   #32344a; 
-@define-color red   #f7768e; 
-@define-color grn   #9ece6a; 
-@define-color ylw   #e0af68; 
-@define-color blu   #7aa2f7; 
-@define-color mag   #ad8ee6; 
-@define-color cyn   #0db9d7; 
-@define-color brblk #444b6a; 
-@define-color white #ffffff; 
+@import "/home/badmaster67/.cache/matugen/waybar.css";
 
 * {
-    font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 16px;
-    font-weight: bold;
+    font-family: "CommitMono Nerd Font Mono", monospace;
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
 }
 
 window#waybar {
-    background-color: @bg;
+    background: transparent;
     color: @fg;
 }
 
-#workspaces button {
-    padding: 0 6px;
-    color: @cyn;
-    background: transparent;
-    border-bottom: 3px solid @bg;
-}
-#workspaces button.active {
-    color: @cyn;
-    border-bottom: 3px solid @mag;
-}
-#workspaces button.empty {
-    color: @white;
-}
-#workspaces button.empty.active {
-    color: @cyn;
-    border-bottom: 3px solid @mag;
+#waybar > box {
+    margin: 8px 12px 0 12px;
 }
 
-#workspaces button.urgent {
-    background-color: @red;
-}
-
-button:hover {
-    background: inherit;
-    box-shadow: inset 0 -3px #ffffff;
-}
-
-#clock,
-#custom-sep,
-#battery,
-#cpu,
-#memory,
-#disk,
+/* DEEPER, DARKER, COOLER MODULE BACKGROUND */
+#tray,
 #network,
-#tray {
-    padding: 0 8px;
+#bluetooth,
+#pulseaudio,
+#battery,
+#clock {
+    background: alpha(@bg, 0.92);
+    border: 1px solid alpha(@muted, 0.6); /* surface_container_highest provides the border separation */
+    border-radius: 12px;
+    padding: 2px 14px;
+    margin: 0 4px;
+    font-weight: bold;
+}
+
+/* --- WORKSPACES --- */
+#tags {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0 8px;
+}
+
+#tags button {
+    background: transparent;
+    color: alpha(@fg, 0.4); /* Dynamic dimming for inactive tags */
+    padding: 4px 6px;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+}
+
+/* Workspace has windows open on it */
+#tags button.occupied {
     color: @white;
 }
 
-#custom-sep {
-    color: @brblk;
+/* Workspace is currently active/focused */
+#tags button.focused {
+    color: @white;
+    border-bottom: 2px solid @red; /* Maps to colors.error from your template */
+}
+
+/* Workspace has an urgent window */
+#tags button.urgent {
+    color: @red;
+}
+
+#tags button:hover {
+    background: alpha(@fg, 0.04);
+    color: @fg;
+}
+
+/* --- COMBINED NOTIFICATION + CLOCK PILL --- */
+#custom-stats {
+    background: alpha(@bg, 0.92);
+    border: 1px solid alpha(@muted, 0.6);
+    border-radius: 12px;
+    padding: 2px 14px;
+    margin: 0 4px;
+    color: @fg;
 }
 
 #clock {
-    color: @cyn;
-    border-bottom: 4px solid @cyn;
+    background: alpha(@bg, 0.92);
+    border: 1px solid alpha(@muted, 0.6);
+    border-radius: 12px;
+    padding: 2px 14px;
+    margin: 0 4px;
+    font-weight: bold;
 }
 
-#battery {
-    color: @mag;
-    border-bottom: 4px solid @mag;
+/* Notification glow state */
+#custom-swaync.notification {
+    color: @red;
+    border-color: alpha(@red, 0.6);
+    background: alpha(@red, 0.15);
 }
 
-#disk {
-    color: @ylw;
-    border-bottom: 4px solid @ylw;
+/* --- SYSTEM TRAY --- */
+#tray {
+    padding: 2px 10px;
 }
 
-#memory {
-    color: @mag;
-    border-bottom: 4px solid @mag;
+/* --- STATES / ALERTS --- */
+#bluetooth.connected {
+    color: @primary; /* Maps to colors.primary */
 }
 
-#cpu {
-    color: @grn;
-    border-bottom: 4px solid @grn;
-}
-
-#network {
-    color: @blu;
-    border-bottom: 4px solid @blu;
+#pulseaudio.muted {
+    color: @red;
+    border-color: alpha(@red, 0.5);
 }
 
 #network.disconnected {
-    background-color: @red;
+    color: @red;
 }
 
-#tray {
-    background-color: #2980b9;
+#battery.warning:not(.charging) {
+    color: @red;
+    border-color: alpha(@red, 0.5);
+    animation: blink 1.5s linear infinite;
 }
 
+@keyframes blink {
+    to {
+        background: alpha(@red, 0.4);
+    }
+}
