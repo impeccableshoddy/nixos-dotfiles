@@ -22,6 +22,8 @@
   services.spice-vdagentd.enable = true;
   services.openssh.enable = true;
 
+  services.vnstat.enable = true;
+
   environment.sessionVariables = {
    WLR_NO_HARDWARE_CURSORS = "1";
   };

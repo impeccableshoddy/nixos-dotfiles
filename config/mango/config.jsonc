@@ -5,8 +5,8 @@
   "spacing": 0, 
 
   "modules-left": ["dwl/tags"],
-  "modules-center": ["custom/swaync", "clock"],
-  "modules-right": ["tray", "network", "bluetooth", "pulseaudio", "battery"],
+  "modules-center": ["clock"],
+  "modules-right": [ "custom/stats", "tray", "network", "bluetooth", "pulseaudio", "battery"],
 
   "dwl/tags": {
     "num-tags": 9,
@@ -14,29 +14,18 @@
     "disable-click": false
   },
 
-    "custom/swaync": {
-    "tooltip": false,
-    "return-type": "json",
-    "exec-if": "which swaync-client",
-    "exec": "swaync-client -swb",
-    "format": "{icon}",
-    "format-icons": {
-      "none": "󰂛",         
-      "notification": "󰂚", 
-      "dnd-none": "󰂛",
-      "dnd-notification": "󰂚"
-    },
-    "on-click": "swaync-client -t -sw",
-    "escape": true
-  },
+  "custom/stats": {
+  "exec": "~/.config/mango/stats.sh",
+  "interval": 3,
+  "format": "{}",
+  "tooltip": false
+},
 
   "clock": {
     "format": "󰥔  {:%a %H:%M}",
     "format-alt": "󰃭  {:%Y-%m-%d}",
     "tooltip-format": "<tt><small>{calendar}</small></tt>",
     "tooltip-format-alt": "<tt><small>{calendar}</small></tt>",
-    "on-click": "eww active-windows | grep -q dashboard && eww close dashboard || eww open dashboard",
-    "on-click-right": "mode", // Right-click toggles calendar mode on hover
     "calendar": {
       "mode": "month",
       "mode-mon-col": 3,
@@ -78,7 +67,10 @@
     "format-icons": {
       "default": ["󰕿", "󰖀", "󰕾"]
     },
-    "on-click": "pamixer -t"
+    "on-click": "pamixer -t",
+    "on-scroll-up": "pamixer -i 5",
+"on-scroll-down": "pamixer -d 5",
+"on-click-right": "pavucontrol"
   },
 
   "battery": {

@@ -22,11 +22,12 @@ window#waybar {
 #pulseaudio,
 #battery,
 #clock {
-    background: rgba(6, 2, 4, 0.92); /* Cold, deep void */
-    border: 1px solid rgba(30, 11, 13, 0.6); /* Subtle dark outline */
+    background: rgba(6, 2, 4, 0.92);
+    border: 1px solid rgba(30, 11, 13, 0.6);
     border-radius: 12px;
     padding: 2px 14px;
     margin: 0 4px;
+    font-weight: bold;
 }
 
 /* --- WORKSPACES (No box, clean floating text, red underline) --- */
@@ -68,21 +69,21 @@ window#waybar {
 }
 
 /* --- COMBINED NOTIFICATION + CLOCK PILL --- */
-#custom-swaync {
+#custom-stats {
     background: rgba(6, 2, 4, 0.92);
     border: 1px solid rgba(30, 11, 13, 0.6);
-    border-radius: 12px 0px 0px 12px; /* Round left, flat right */
-    padding: 2px 8px 2px 14px;
-    margin-right: 0px; 
+    border-radius: 12px;
+    padding: 2px 14px;
+    margin: 0 4px;
     color: #c8ccd8;
 }
 
 #clock {
     background: rgba(6, 2, 4, 0.92);
     border: 1px solid rgba(30, 11, 13, 0.6);
-    border-radius: 0px 12px 12px 0px; /* Flat left, round right */
-    padding: 2px 14px 2px 8px;
-    margin-left: 0px; 
+    border-radius: 12px; /* Flat left, round right */
+    padding: 2px 14px;
+    margin: 0 4px; 
     font-weight: bold;
 }
 
