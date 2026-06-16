@@ -18,6 +18,7 @@
   "exec": "~/.config/mango/stats.sh",
   "interval": 3,
   "format": "{}",
+  "on-click": "foot --app-id=floating_btop -e btop",
   "tooltip": false
 },
 

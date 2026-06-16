@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-unstable, zen-browser, inputs, ... }:
+{ config, pkgs, pkgs-unstable, zen-browser, ... }:
 let
   dotfiles = "/home/badmaster67/nixos-dotfiles/config";
   create_symlink = path: config.lib.file.mkOutOfStoreSymlink path;
@@ -8,7 +8,6 @@ in
   home.homeDirectory = "/home/badmaster67";
   imports = [ 
   ./modules/neovim.nix 
-  inputs.ags.homeManagerModules.default
   ];
 
   home.file = {
@@ -16,26 +15,8 @@ in
     ".config/foot".source = create_symlink "${dotfiles}/foot";
     ".config/waybar".source = create_symlink "${dotfiles}/waybar";
     ".config/nvim".source = create_symlink "${dotfiles}/nvim";
-    ".config/ags".source = create_symlink "${dotfiles}/ags";
     ".config/dunst".source = create_symlink "${dotfiles}/dunst";
   };
-
-  programs.ags = {
-  enable = true;
-  extraPackages = with inputs.astal.packages.${pkgs.system}; [
-    io
-    battery
-    network
-    tray
-    mpris
-    notifd
-    wireplumber
-    wl
-    bluetooth
-    brightness
-    powerprofiles
-  ];
-};  
 
   programs.git.enable = true;
   programs.foot.enable = true;
@@ -56,8 +37,6 @@ in
     playerctl
     bc
     swaybg
-    swayosd
-    vnstat
 
     blueman
     networkmanagerapplet

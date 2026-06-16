@@ -5,17 +5,6 @@
     nixpkgs.url = "nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
 
-    astal = {
-    url = "github:aylur/astal";
-    inputs.nixpkgs.follows = "nixpkgs-unstable"; # CRITICAL
-  };
-
-    ags = {
-    url = "github:aylur/ags";
-    inputs.nixpkgs.follows = "nixpkgs-unstable"; # CRITICAL
-    inputs.astal.follows = "astal";              # Ensures they use the same Astal version
-  };
-
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -32,7 +21,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, mangowm, zen-browser, astal, ags, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, mangowm, zen-browser, ... }:
     let
       system = "x86_64-linux";
       pkgs-unstable = import nixpkgs-unstable {
@@ -53,7 +42,7 @@
             home-manager.users.badmaster67 = import ./home.nix;
             home-manager.backupFileExtension = "backup";
             home-manager.extraSpecialArgs = { 
-            inherit pkgs-unstable inputs; 
+            inherit pkgs-unstable; 
             zen-browser = zen-browser.packages.${system}.zen-browser;
             };
           }
