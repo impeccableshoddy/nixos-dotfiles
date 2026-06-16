@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "dependencies": {
+    "ags": "/nix/store/fhk7ndaayydgdpnzsavlkx5z2s3b7x3h-ags-js-lib"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 0, 
+
+  "modules-left": ["dwl/tags"],
+  "modules-center": ["custom/swaync", "clock"],
+  "modules-right": ["tray", "network", "bluetooth", "pulseaudio", "battery"],
+
+  "dwl/tags": {
+    "num-tags": 9,
+    "tag-labels": ["一", "二", "三", "四", "五", "六", "七", "八", "九"],
+    "disable-click": false
+  },
+
+    "custom/swaync": {
+    "tooltip": false,
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "format": "{icon}",
+    "format-icons": {
+      "none": "󰂛",         
+      "notification": "󰂚", 
+      "dnd-none": "󰂛",
+      "dnd-notification": "󰂚"
+    },
+    "on-click": "swaync-client -t -sw",
+    "escape": true
+  },
+
+  "clock": {
+    "format": "󰥔  {:%a %H:%M}",
+    "format-alt": "󰃭  {:%Y-%m-%d}",
+    "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    "tooltip-format-alt": "<tt><small>{calendar}</small></tt>",
+    "on-click": "eww active-windows | grep -q dashboard && eww close dashboard || eww open dashboard",
+    "on-click-right": "mode", // Right-click toggles calendar mode on hover
+    "calendar": {
+      "mode": "month",
+      "mode-mon-col": 3,
+      "weeks-pos": "right",
+      "on-scroll": 1,
+      "format": {
+        "months": "<span color='#e6e8f0'><b>{}</b></span>",
+        "days": "<span color='#c8ccd8'><b>{}</b></span>",
+        "weeks": "<span color='#b40c14'><b>W{}</b></span>",
+        "weekdays": "<span color='#ce2c3a'><b>{}</b></span>",
+        "today": "<span color='#ffffff'><b><u>{}</u></b></span>"
+      }
+    }
+  }, 
+
+  "tray": {
+    "spacing": 8,
+    "icon-size": 14
+  },
+
+  "network": {
+    "format-wifi": "󰤨  {essid}",
+    "format-ethernet": "󰈀  Wired",
+    "format-disconnected": "󰤭  Offline",
+    "on-click": "nm-connection-editor", 
+    "tooltip-format-wifi": "{ipaddr}\n{frequency} GHz\n{signalStrength}%"
+  },
+
+  "bluetooth": {
+    "format": "󰂯  {status}",
+    "format-connected": "󰂱  {device_alias}",
+    "format-off": "󰂯  Off",
+    "on-click": "blueman-manager"
+  },
+
+  "pulseaudio": {
+    "format": "{icon}  {volume}%",
+    "format-muted": "󰖁  Muted",
+    "format-icons": {
+      "default": ["󰕿", "󰖀", "󰕾"]
+    },
+    "on-click": "pamixer -t"
+  },
+
+  "battery": {
+    "interval": 30,
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon}  {capacity}%",
+    "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+    "format-charging": "󰂄  {capacity}%",
+    "format-full": "󰁹  {capacity}%"
+  }
+}

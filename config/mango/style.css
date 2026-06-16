@@ -1,0 +1,125 @@
+* {
+    font-family: "CommitMono Nerd Font Mono", monospace;
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: #e6e8f0;
+}
+
+#waybar > box {
+    margin: 8px 12px 0 12px; 
+}
+
+/* DEEPER, DARKER, COOLER MODULE BACKGROUND */
+#tray,
+#network,
+#bluetooth,
+#pulseaudio,
+#battery,
+#clock {
+    background: rgba(6, 2, 4, 0.92); /* Cold, deep void */
+    border: 1px solid rgba(30, 11, 13, 0.6); /* Subtle dark outline */
+    border-radius: 12px;
+    padding: 2px 14px;
+    margin: 0 4px;
+}
+
+/* --- WORKSPACES (No box, clean floating text, red underline) --- */
+#tags {
+    background: transparent; /* No box! */
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0 8px; 
+}
+
+#tags button {
+    background: transparent;
+    color: #5c3a3a; /* Dim dusty red - visible but clearly inactive */
+    padding: 4px 6px;
+    border-radius: 0; /* Sharp */
+    border-bottom: 2px solid transparent; 
+}
+
+/* Workspace has windows open on it */
+#tags button.occupied {
+    color: #e6e8f0; /* ICE WHITE text */
+}
+
+/* Workspace is currently active/focused */
+#tags button.focused {
+    color: #e6e8f0; /* ICE WHITE text */
+    border-bottom: 2px solid #ce2c3a; /* SCREAMING RED SHARP UNDERLINE */
+}
+
+/* Workspace has an urgent window */
+#tags button.urgent {
+    color: #ce2c3a; /* SCREAMING RED text */
+}
+
+#tags button:hover {
+    background: rgba(230, 232, 240, 0.04);
+    color: #e6e8f0;
+}
+
+/* --- COMBINED NOTIFICATION + CLOCK PILL --- */
+#custom-swaync {
+    background: rgba(6, 2, 4, 0.92);
+    border: 1px solid rgba(30, 11, 13, 0.6);
+    border-radius: 12px 0px 0px 12px; /* Round left, flat right */
+    padding: 2px 8px 2px 14px;
+    margin-right: 0px; 
+    color: #c8ccd8;
+}
+
+#clock {
+    background: rgba(6, 2, 4, 0.92);
+    border: 1px solid rgba(30, 11, 13, 0.6);
+    border-radius: 0px 12px 12px 0px; /* Flat left, round right */
+    padding: 2px 14px 2px 8px;
+    margin-left: 0px; 
+    font-weight: bold;
+}
+
+/* Notification glow state */
+#custom-swaync.notification {
+    color: #ce2c3a;
+    border-color: rgba(206, 44, 58, 0.6);
+    background: rgba(206, 44, 58, 0.15);
+}
+
+/* --- SYSTEM TRAY --- */
+#tray {
+    padding: 2px 10px;
+}
+
+/* --- STATES / ALERTS --- */
+#bluetooth.connected {
+    color: #6bb3b3; 
+}
+
+#pulseaudio.muted {
+    color: #ce2c3a; 
+    border-color: rgba(206, 44, 58, 0.5);
+}
+
+#network.disconnected {
+    color: #ce2c3a;
+}
+
+#battery.warning:not(.charging) {
+    color: #ce2c3a;
+    border-color: rgba(206, 44, 58, 0.5);
+    animation: blink 1.5s linear infinite;
+}
+
+@keyframes blink {
+    to {
+        background: rgba(206, 44, 58, 0.4);
+    }
+}
