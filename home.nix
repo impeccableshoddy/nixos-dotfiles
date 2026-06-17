@@ -24,9 +24,6 @@ in
         pad = "4x4";
         initial-window-size-chars = "90x25";
       };
-      colors-dark = {
-        alpha=0.80;
-      };
       "key-bindings" = {
         clipboard-copy = "Control+Shift+c";
         clipboard-paste = "Control+Shift+v";
