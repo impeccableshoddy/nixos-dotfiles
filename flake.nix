@@ -10,6 +10,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    stylix = {
+      url = "github:nix-community/stylix/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     mangowm = {
       url = "github:mangowm/mango";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -21,7 +26,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, mangowm, zen-browser, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, stylix, mangowm, zen-browser, ... }:
     let
       system = "x86_64-linux";
       pkgs-unstable = import nixpkgs-unstable {
@@ -35,15 +40,16 @@
         modules = [
           ./configuration.nix
           mangowm.nixosModules.mango
+          stylix.nixosModules.stylix
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.badmaster67 = import ./home.nix;
             home-manager.backupFileExtension = "backup";
-            home-manager.extraSpecialArgs = { 
-            inherit pkgs-unstable; 
-            zen-browser = zen-browser.packages.${system}.zen-browser;
+            home-manager.extraSpecialArgs = {
+              inherit pkgs-unstable;
+              zen-browser = zen-browser.packages.${system}.zen-browser;
             };
           }
         ];
