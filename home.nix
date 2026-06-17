@@ -68,12 +68,9 @@ in
     set -g status-left-length 20
     set -g status-right-length 60
     set -g status-left " #S "
-    set -g status-right " #{pane_current_command}  %H:%M "
+    set -g status-right " %d-%b %H:%M "
     set -g window-status-format " #I:#W "
     set -g window-status-current-format " #I:#W "
-    set -g status-style "bg=default"
-    set -g window-status-current-style "bold"
-    set -g message-style "bg=default,bold"
 
     # --- Splits ---
     bind | split-window -h -c "#{pane_current_path}"
@@ -130,9 +127,60 @@ in
     };
   };
 
+  programs.zoxide = {
+  enable = true;
+  enableBashIntegration = true;
+};
+
+  programs.fzf = {
+  enable = true;
+  enableBashIntegration = true;
+};
+
+programs.starship = {
+  enable = true;
+  settings = {
+    add_newline = true;
+    format = lib.concatStrings [
+      "$directory"
+      "$git_branch"
+      "$git_status"
+      "$line_break"
+      "$character"
+    ];
+
+    directory = {
+      style = "bold fg:#C98B8B";
+      truncation_length = 3;
+      truncate_to_repo = true;
+    };
+
+    git_branch = {
+      symbol = "";
+      style = "fg:#B78689";
+      format = "[on $branch]($style) ";
+    };
+
+    git_status = {
+      style = "fg:#3C353F";
+      format = "[$all_status$ahead_behind]($style)";
+    };
+
+    line_break = {
+      disabled = false;
+    };
+
+    character = {
+      success_symbol = "[❯](bold fg:#FEB4B6)";
+      error_symbol = "[❯](bold fg:#3C353F)";
+    };
+  };
+};
+
   home.packages = with pkgs; [
     wlr-randr
-    zoxide
+    fd
+    rg
     eza
     fastfetch
     legcord
@@ -159,8 +207,10 @@ in
     enable = true;
     shellAliases = {
       nrb = "sudo nixos-rebuild switch --flake ~/nixos-dotfiles#oubliette-btw";
+      nup = "nix flake update --flake ~/nixos-dotfiles && sudo nixos-rebuild switch --flake ~/nixos-dotfiles#oubliette-btw";
       ll = "eza -lah --icons=auto --color=always --group-directories-first";
       tree = "eza --tree --icons=auto --color=always";
+      y = "yazi";
     };
   };
 
