@@ -13,7 +13,11 @@ in
     ".config/btop".source = create_symlink "${dotfiles}/btop";
   };
 
-  programs.git.enable = true;
+  programs.git = {
+    enable = true;
+    userName = "impeccableshoddy";
+    userEmail = "227250706+impeccableshoddy@users.noreply.github.com";
+  };
   programs.dircolors.enable = true;
 
   programs.foot = {
