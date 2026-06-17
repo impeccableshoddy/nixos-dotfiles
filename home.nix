@@ -127,9 +127,11 @@ in
   };
 
   home.packages = with pkgs; [
+    wlr-randr
     zoxide
     eza
     fastfetch
+    legcord
     yazi
     kdePackages.ghostwriter
     zen-browser
@@ -142,8 +144,10 @@ in
     awww
     playerctl
     pamixer
+    pulsemixer
     brightnessctl
     bluetui
+    impala
     bc
   ];
 
