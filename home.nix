@@ -180,7 +180,7 @@ programs.starship = {
   home.packages = with pkgs; [
     wlr-randr
     fd
-    rg
+    ripgrep
     eza
     fastfetch
     legcord
