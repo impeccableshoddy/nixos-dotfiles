@@ -1,13 +1,15 @@
 { config, lib, pkgs, pkgs-unstable, zen-browser, ... }:
-
 {
   imports = [ ./hardware-configuration.nix ];
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.limine = {
+    enable = true;
+    efiSupport = true;
+    efiInstallAsRemovable = true;
+    maxGenerations = 10;
+  };
 
   time.timeZone = "Asia/Calcutta";
-
   networking.hostName = "oubliette-btw";
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.backend = "iwd";
@@ -16,15 +18,22 @@
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
+  hardware.acpilight.enable = true;
 
-  services.qemuGuest.enable = true;
-  services.spice-vdagentd.enable = true;
+  services.keyd = {
+    enable = true;
+    keyboards.default = {
+      ids = [ "*" ];
+      settings = {
+        main = {
+          capslock = "overload(control, esc)";
+        };
+      };
+    };
+  };
+
   services.openssh.enable = true;
   services.vnstat.enable = true;
-
-  environment.sessionVariables = {
-    WLR_NO_HARDWARE_CURSORS = "1";
-  };
 
   services.getty.autologinUser = "badmaster67";
   environment.loginShellInit = ''
@@ -33,20 +42,27 @@
 
   programs.mango.enable = true;
 
-  users.users.badmaster67 = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" ];
+  home-manager.users.badmaster67.home.pointerCursor = {
+    name = "Bibata-Modern-Ice";
+    package = pkgs.bibata-cursors;
+    size = 24;
   };
 
-  # --- Stylix theming ---
+  swapDevices = [{
+    device = "/swapfile";
+    size = 8 * 1024;
+  }];
+
+  users.users.badmaster67 = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "input" "networkmanager" "video" ];
+  };
+
   stylix = {
     enable = true;
     image = builtins.path { path = ./wallpapers/girl.jpg; name = "wallpaper"; };
     polarity = "dark";
-    # Auto-extract colors from example.jpg instead of static scheme
-    # This gives colors that actually match the wallpaper
     autoEnable = true;
-
     fonts = {
       monospace = {
         package = pkgs.nerd-fonts.commit-mono;
@@ -62,17 +78,16 @@
       };
       sizes = {
         terminal = 13;
-        applications = 11;
-        desktop = 10;
-        popups = 10;
+        applications = 13;
+        desktop = 13;
+        popups = 13;
       };
     };
-
     opacity = {
-      terminal = 0.80;
-      applications = 1.0;
-      desktop = 1.0;
-      popups = 1.0;
+      terminal = 0.81;
+      applications = 0.9;
+      desktop = 0.9;
+      popups = 0.9;
     };
   };
 
@@ -84,11 +99,11 @@
   ];
 
   nix.gc = {
-  automatic = true;
-  dates = "weekly";
-  options = "--delete-older-than 7d";
-};
-nix.settings.auto-optimise-store = true;
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
+  nix.settings.auto-optimise-store = true;
 
   fonts.packages = with pkgs; [
     iosevka
