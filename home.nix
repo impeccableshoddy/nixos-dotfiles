@@ -137,45 +137,106 @@ in
   enableBashIntegration = true;
 };
 
-programs.starship = {
+  programs.starship = {
   enable = true;
-  settings = {
+  settings = lib.mkForce {
     add_newline = true;
+    command_timeout = 1000;
+
+    palette = "girl";
+    palettes.girl = {
+      ink      = "#090910"; # deepest navy
+      graphite = "#13141C"; # dark navy, unused divider color, kept for future use
+      slate    = "#1A1B28"; # dark cool navy — lang/tool pill backgrounds
+      rose     = "#BB8181"; # medium rose — directory bg
+      taupe    = "#CD8F90"; # light rose — git bg
+      blush    = "#F1B0B4"; # lightest pink — bright text on dark bg
+      cream    = "#9F7274"; # muted mauve, unused, kept for future use
+      deepred  = "#B83549"; # deep mauve — cmd_duration / error state
+    };
+
     format = lib.concatStrings [
+      "[](ink)"                  # LEFT cap (e0b6), opens the bar
+      "$hostname"
+      "[](fg:ink bg:rose)"       # RIGHT cap (e0b4), ink -> rose transition
       "$directory"
+      "[](fg:rose bg:taupe)"     # RIGHT cap (e0b4), rose -> taupe transition
       "$git_branch"
       "$git_status"
+      "[](fg:taupe)"             # RIGHT cap (e0b4), closes the bar on taupe
+      " "
+      "$nix_shell"
+      "$docker_context"
+      "$c"
+      "$cpp"
+      "$rust"
+      "$golang"
+      "$zig"
+      "$lua"
+      "$perl"
+      "$nodejs"
+      "$python"
+      "$cmd_duration"
       "$line_break"
       "$character"
     ];
 
+    hostname = {
+      ssh_only = false;
+      style = "bg:ink fg:blush";
+      format = "[ $hostname ]($style)";
+      disabled = false;
+    };
+
     directory = {
-      style = "bold fg:#C98B8B";
+      style = "fg:ink bg:rose";
+      format = "[ $path ]($style)";
       truncation_length = 3;
       truncate_to_repo = true;
     };
 
     git_branch = {
-      symbol = "";
-      style = "fg:#B78689";
-      format = "[on $branch]($style) ";
+      symbol = " ";
+      style = "fg:ink bg:taupe";
+      format = "[ $symbol$branch ]($style)";
     };
 
     git_status = {
-      style = "fg:#3C353F";
-      format = "[$all_status$ahead_behind]($style)";
+      style = "fg:ink bg:taupe";
+      format = "[($all_status$ahead_behind )]($style)";
     };
 
-    line_break = {
-      disabled = false;
+    # Self-contained pills: LEFT cap (e0b6) + content + RIGHT cap (e0b4) + space.
+    # Each one renders independently with rounded ends on both sides,
+    # regardless of which other pills are active alongside it.
+    nix_shell      = { symbol = "❄"; style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $name ]($style)[](fg:slate) "; };
+    docker_context = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $context ]($style)[](fg:slate) "; only_with_files = true; };
+    c              = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    cpp            = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    rust           = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    golang         = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    zig            = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    lua            = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    perl           = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    nodejs         = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+    python         = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
+
+    cmd_duration = {
+      style = "fg:deepred";
+      format = "[took $duration]($style)";
+      min_time = 2000;
     };
+
+    line_break.disabled = false;
 
     character = {
-      success_symbol = "[❯](bold fg:#FEB4B6)";
-      error_symbol = "[❯](bold fg:#3C353F)";
+      success_symbol = "[╰─](bold fg:blush)";
+      error_symbol = "[╰─](bold fg:deepred)";
     };
   };
 };
+
+  programs.zathura.enable = true;
 
   home.packages = with pkgs; [
     wlr-randr
