@@ -6,8 +6,9 @@
     enable = true;
     efiSupport = true;
     efiInstallAsRemovable = true;
-    maxGenerations = 10;
   };
+
+  nixpkgs.config.allowUnfree = true;
 
   time.timeZone = "Asia/Calcutta";
   networking.hostName = "oubliette-btw";
@@ -64,18 +65,9 @@
     polarity = "dark";
     autoEnable = true;
     fonts = {
-      monospace = {
-        package = pkgs.nerd-fonts.commit-mono;
-        name = "CommitMono Nerd Font";
-      };
-      sansSerif = {
-        package = pkgs.iosevka;
-        name = "Iosevka";
-      };
-      serif = {
-        package = pkgs.iosevka;
-        name = "Iosevka";
-      };
+      monospace.name = "JetBrainsMono Nerd Font";
+      sansSerif.name = "Work Sans";
+      serif.name = "EB Garamond";
       sizes = {
         terminal = 13;
         applications = 13;
@@ -85,17 +77,40 @@
     };
     opacity = {
       terminal = 0.81;
-      applications = 0.9;
-      desktop = 0.9;
+      applications = 0.81;
+      desktop = 0.81;
       popups = 0.9;
     };
   };
+
+  programs.thunar = {
+  enable = true;
+  plugins = with pkgs; [
+    thunar-archive-plugin
+    thunar-volman
+  ];
+};
+
+  programs.xfconf.enable = true;
+  services.udisks2.enable = true;
+  services.gvfs.enable = true;
+  #services.samba.enable = true;  # for Windows/SMB shares
+  
+  fonts.packages = with pkgs; [
+  work-sans
+  eb-garamond
+  nerd-fonts.jetbrains-mono
+  nerd-fonts.fira-code
+];
 
   environment.systemPackages = with pkgs; [
     neovim
     git
     wget
     curl
+    android-tools
+    jmtpfs
+    libmtp
   ];
 
   nix.gc = {
@@ -104,12 +119,6 @@
     options = "--delete-older-than 7d";
   };
   nix.settings.auto-optimise-store = true;
-
-  fonts.packages = with pkgs; [
-    iosevka
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.commit-mono
-  ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   hardware.graphics.enable = true;

@@ -10,13 +10,25 @@ in
 
   home.file = {
     ".config/mango".source = create_symlink "${dotfiles}/mango";
-    ".config/btop".source = create_symlink "${dotfiles}/btop";
+  };
+
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "image/jpeg" = ["imv.desktop"];
+      "image/png" = ["imv.desktop"];
+      "video/mp4" = ["mpv.desktop"];
+      "video/webm" = ["mpv.desktop"];
+      "inode/directory" = ["thunar.desktop"];
+    };
   };
 
   programs.git = {
     enable = true;
-    userName = "impeccableshoddy";
-    userEmail = "227250706+impeccableshoddy@users.noreply.github.com";
+    settings = {
+      user.name = "impeccableshoddy";
+      user.email = "227250706+impeccableshoddy@users.noreply.github.com";
+    };
   };
   programs.dircolors.enable = true;
 
@@ -24,7 +36,7 @@ in
     enable = true;
     settings = {
       main = {
-        font = lib.mkForce "CommitMono Nerd Font Mono:size=13:fontfeatures=calt=1,liga=1";
+        font = lib.mkForce "FiraCode Nerd Font Mono:size=12";
         pad = "4x4";
         initial-window-size-chars = "90x25";
       };
@@ -48,6 +60,10 @@ in
       };
     };
   };
+
+  programs.yazi = {
+    enable = true;
+};
 
  programs.tmux = {
   enable = true;
@@ -164,7 +180,6 @@ in
       "$git_branch"
       "$git_status"
       "[](fg:taupe)"             # RIGHT cap (e0b4), closes the bar on taupe
-      " "
       "$nix_shell"
       "$docker_context"
       "$c"
@@ -176,7 +191,6 @@ in
       "$perl"
       "$nodejs"
       "$python"
-      "$cmd_duration"
       "$line_break"
       "$character"
     ];
@@ -206,26 +220,18 @@ in
       format = "[($all_status$ahead_behind )]($style)";
     };
 
-    # Self-contained pills: LEFT cap (e0b6) + content + RIGHT cap (e0b4) + space.
-    # Each one renders independently with rounded ends on both sides,
-    # regardless of which other pills are active alongside it.
-    nix_shell      = { symbol = "❄"; style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $name ]($style)[](fg:slate) "; };
-    docker_context = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $context ]($style)[](fg:slate) "; only_with_files = true; };
-    c              = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    cpp            = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    rust           = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    golang         = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    zig            = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    lua            = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    perl           = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    nodejs         = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-    python         = { symbol = "";  style = "fg:blush bg:slate"; format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate) "; };
-
-    cmd_duration = {
-      style = "fg:deepred";
-      format = "[took $duration]($style)";
-      min_time = 2000;
-    };
+    # Self-contained pills: LEFT cap (e0b6) + content + RIGHT cap (e0b4).
+    nix_shell      = { symbol = "❄"; style = "fg:blush bg:slate"; format = "[ $symbol $name ]($style)[](fg:slate)"; };
+    docker_context = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $context ]($style)[](fg:slate)"; only_with_files = true; };
+    c              = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    cpp            = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    rust           = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    golang         = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    zig            = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    lua            = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    perl           = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    nodejs         = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
+    python         = { symbol = "";  style = "fg:blush bg:slate"; format = "[ $symbol $version ]($style)[](fg:slate)"; };
 
     line_break.disabled = false;
 
@@ -236,16 +242,34 @@ in
   };
 };
 
-  programs.zathura.enable = true;
+  programs.zathura = {
+    enable = true;
+    package = pkgs.zathura.override {
+    plugins = [
+      pkgs.zathuraPkgs.zathura_cb
+    ];
+  };
+  };
+
+  programs.btop.enable = true;
 
   home.packages = with pkgs; [
-    wlr-randr
     fd
+    ncdu
+    imv
+    mpv
+    file-roller
+    unzip
+    p7zip
+    bemoji
     ripgrep
-    eza
     fastfetch
     legcord
-    yazi
+    libreoffice-fresh
+    gimp
+    aseprite
+    inkscape
+    wf-recorder
     kdePackages.ghostwriter
     zen-browser
     fuzzel
@@ -253,10 +277,10 @@ in
     grim
     slurp
     swappy
+    cliphist
     wl-clipboard
     awww
     playerctl
-    pamixer
     pulsemixer
     brightnessctl
     bluetui
@@ -269,8 +293,6 @@ in
     shellAliases = {
       nrb = "sudo nixos-rebuild switch --flake ~/nixos-dotfiles#oubliette-btw";
       nup = "nix flake update --flake ~/nixos-dotfiles && sudo nixos-rebuild switch --flake ~/nixos-dotfiles#oubliette-btw";
-      ll = "eza -lah --icons=auto --color=always --group-directories-first";
-      tree = "eza --tree --icons=auto --color=always";
       y = "yazi";
     };
   };
