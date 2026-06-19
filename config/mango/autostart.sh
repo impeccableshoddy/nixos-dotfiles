@@ -16,3 +16,6 @@ else
 fi
 
 awww img "$BG" --transition-type outer --transition-duration 0.5 --transition-fps 60 >/dev/null 2>&1
+
+# start clip history
+wl-paste --watch cliphist store >/dev/null 2>&1
