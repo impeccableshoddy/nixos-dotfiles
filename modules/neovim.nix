@@ -65,6 +65,7 @@ in {
 
       # Formatting
       conform-nvim
+      vim-easy-align
 
       # Editor utilities
       mini-nvim # covers mini.ai and mini.surround both

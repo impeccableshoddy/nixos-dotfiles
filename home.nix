@@ -1,13 +1,18 @@
-{ config, lib, pkgs, pkgs-unstable, zen-browser, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  pkgs-unstable,
+  zen-browser,
+  ...
+}: let
   dotfiles = "/home/badmaster67/nixos-dotfiles/config";
   create_symlink = path: config.lib.file.mkOutOfStoreSymlink path;
-in
-{
+in {
   home.username = "badmaster67";
   home.homeDirectory = "/home/badmaster67";
-  imports = [ 
-    ./modules/neovim.nix 
+  imports = [
+    ./modules/neovim.nix
     ./modules/tmux.nix
     ./modules/starship.nix
   ];
@@ -56,9 +61,9 @@ in
 
   programs.yazi = {
     enable = true;
-};
+  };
 
- services.mako = {
+  services.mako = {
     enable = true;
     settings = {
       default-timeout = 5000;
@@ -75,28 +80,29 @@ in
   };
 
   programs.zoxide = {
-  enable = true;
-  enableBashIntegration = true;
-};
+    enable = true;
+    enableBashIntegration = true;
+  };
 
   programs.fzf = {
-  enable = true;
-  enableBashIntegration = true;
-};
+    enable = true;
+    enableBashIntegration = true;
+  };
 
   programs.zathura = {
     enable = true;
     package = pkgs.zathura.override {
-    plugins = [
-      pkgs.zathuraPkgs.zathura_cb
-      pkgs.zathuraPkgs.zathura_pdf_poppler
-    ];
-  };
+      plugins = [
+        pkgs.zathuraPkgs.zathura_cb
+        pkgs.zathuraPkgs.zathura_pdf_poppler
+      ];
+    };
   };
 
   programs.btop.enable = true;
 
   home.packages = with pkgs; [
+    tree
     file
     fd
     ncdu
@@ -112,10 +118,8 @@ in
     legcord
     libreoffice-fresh
     gimp
-    aseprite
-    inkscape
     wf-recorder
-    kdePackages.ghostwriter
+    mousepad
     zen-browser
     fuzzel
     libnotify
