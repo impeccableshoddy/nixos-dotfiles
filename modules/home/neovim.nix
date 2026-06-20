@@ -1,10 +1,11 @@
 {
   config,
   pkgs,
+  username,
   lib,
   ...
 }: let
-  nvimDir = "/home/badmaster67/nixos-dotfiles/config/nvim";
+  nvimDir = "/home/${username}/nixos-dotfiles/config/nvim";
 in {
   home.packages = with pkgs; [
     # LSP servers

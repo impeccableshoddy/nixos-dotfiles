@@ -26,33 +26,46 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, stylix, mangowm, zen-browser, ... }:
-    let
-      system = "x86_64-linux";
-      pkgs-unstable = import nixpkgs-unstable {
-        inherit system;
-        config.allowUnfree = true;
-      };
-    in {
-      nixosConfigurations.oubliette-btw = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit pkgs-unstable; inherit (zen-browser.packages.${system}) zen-browser; };
-        modules = [
-          ./configuration.nix
-          mangowm.nixosModules.mango
-          stylix.nixosModules.stylix
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.badmaster67 = import ./home.nix;
-            home-manager.backupFileExtension = "backup";
-            home-manager.extraSpecialArgs = {
-              inherit pkgs-unstable;
-              zen-browser = zen-browser.packages.${system}.zen-browser;
-            };
-          }
-        ];
-      };
+  outputs = {
+    self,
+    nixpkgs,
+    nixpkgs-unstable,
+    home-manager,
+    stylix,
+    mangowm,
+    zen-browser,
+    ...
+  }: let
+    system = "x86_64-linux";
+    hostname = "oubliette-btw";
+    username = "badmaster67";
+
+    pkgs-unstable = import nixpkgs-unstable {
+      inherit system;
+      config.allowUnfree = true;
     };
+
+    specialArgs = {
+      inherit pkgs-unstable username hostname;
+      zen-browser = zen-browser.packages.${system}.zen-browser;
+    };
+  in {
+    nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
+      inherit system;
+      inherit specialArgs;
+      modules = [
+        ./hosts/${hostname}
+        mangowm.nixosModules.mango
+        stylix.nixosModules.stylix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.${username} = import ./home/${username};
+          home-manager.backupFileExtension = "backup";
+          home-manager.extraSpecialArgs = specialArgs;
+        }
+      ];
+    };
+  };
 }

@@ -1,0 +1,29 @@
+{
+  pkgs,
+  zen-browser,
+  ...
+}: {
+  home.packages = with pkgs; [
+    tree
+    file
+    fd
+    ncdu
+    imv
+    mpv
+    file-roller
+    unzip
+    p7zip
+    bemoji
+    mupdf
+    ripgrep
+    fastfetch
+    legcord
+    libreoffice-fresh
+    gimp
+    mousepad
+    bluetui
+    impala
+    bc
+    zen-browser
+  ];
+}
