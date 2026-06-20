@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-mkdir -p "$HOME/Videos"
+mkdir -p "$HOME/Videos/Recordings/"
 
 if pgrep -x wf-recorder > /dev/null; then
     pkill -INT wf-recorder

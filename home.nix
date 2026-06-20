@@ -16,32 +16,6 @@ in
     ".config/mango".source = create_symlink "${dotfiles}/mango";
   };
 
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      # Images
-      "image/jpeg" = ["imv.desktop"];
-      "image/png" = ["imv.desktop"];
-      "image/gif" = ["imv.desktop"];
-      "image/webp" = ["imv.desktop"];
-      
-      # Video & Audio
-      "video/mp4" = ["mpv.desktop"];
-      "video/webm" = ["mpv.desktop"];
-      "audio/*" = ["mpv.desktop"];
-      
-      # Documents & Comics (THIS IS WHAT YOU WERE MISSING)
-      "application/pdf" = ["zathura.desktop"];
-      "application/x-cbz" = ["zathura.desktop"];
-      "application/x-cbr" = ["zathura.desktop"];
-      "application/x-cb7" = ["zathura.desktop"];
-      "application/epub+zip" = ["mupdf.desktop"];
-      
-      # Folders
-      "inode/directory" = ["thunar.desktop"];
-    };
-  };
-
   programs.git = {
     enable = true;
     settings = {

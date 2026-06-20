@@ -33,7 +33,7 @@
     };
   };
 
-  services.openssh.enable = true;
+  #services.openssh.enable = true;
   services.vnstat.enable = true;
 
   services.getty.autologinUser = "badmaster67";
@@ -104,7 +104,6 @@
 ];
 
   environment.systemPackages = with pkgs; [
-    neovim
     git
     wget
     curl
