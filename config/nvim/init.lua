@@ -1,3 +1,9 @@
 require("config.options")
 require("config.keybinds")
-require("manage").setup()
+
+-- Plugins
+require("plugins.ui")
+require("plugins.editor")
+require("plugins.telescope")
+require("plugins.completion")
+require("plugins.tools")

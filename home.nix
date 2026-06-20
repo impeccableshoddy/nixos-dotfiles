@@ -124,6 +124,7 @@ in
     swappy
     cliphist
     wl-clipboard
+    wayfreeze
     awww
     playerctl
     pulsemixer
