@@ -8,12 +8,10 @@
       palette = "girl";
       palettes.girl = {
         ink = "#090910";
-        graphite = "#13141C";
         slate = "#1A1B28";
         rose = "#BB8181";
         taupe = "#CD8F90";
         blush = "#F1B0B4";
-        cream = "#9F7274";
         deepred = "#B83549";
       };
 
@@ -35,6 +33,7 @@
         "$zig"
         "$lua"
         "$perl"
+        "$php"
         "$nodejs"
         "$python"
         "$line_break"
@@ -69,58 +68,63 @@
       nix_shell = {
         symbol = "❄";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $name ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $name ]($style)[](fg:slate)";
       };
       docker_context = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $context ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $context ]($style)[](fg:slate)";
         only_with_files = true;
       };
       c = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       cpp = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       rust = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       golang = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       zig = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       lua = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       perl = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       nodejs = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+      };
+      php = {
+        symbol = "🐘";
+        style = "fg:blush bg:slate";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
       python = {
         symbol = "";
         style = "fg:blush bg:slate";
-        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
+        format = "[](fg:slate)[ $symbol $version ]($style)[](fg:slate)";
       };
 
       line_break.disabled = false;

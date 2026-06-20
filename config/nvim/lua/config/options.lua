@@ -13,12 +13,12 @@ opt.autoindent = true
 
 -- Filetype-specific indent (2 spaces)
 vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "javascript", "typescript", "html", "css", "lua", "nix" },
-    callback = function()
-        vim.opt_local.tabstop = 2
-        vim.opt_local.softtabstop = 2
-        vim.opt_local.shiftwidth = 2
-    end,
+  pattern = { "javascript", "typescript", "html", "css", "lua", "nix" },
+  callback = function()
+    vim.opt_local.tabstop = 2
+    vim.opt_local.softtabstop = 2
+    vim.opt_local.shiftwidth = 2
+  end,
 })
 
 -- Search
@@ -66,31 +66,11 @@ opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,lo
 
 -- Error format
 opt.errorformat = table.concat({
-    "%f:%l:%c: %t%*[^:]: %m",
-    "%f:%l: %t%*[^:]: %m",
-    "%f:%l:%c: %m",
-    "%f:%l: %m",
+  "%f:%l:%c: %t%*[^:]: %m",
+  "%f:%l: %t%*[^:]: %m",
+  "%f:%l:%c: %m",
+  "%f:%l: %m",
 }, ",")
-
--- Diagnostics
-vim.diagnostic.config({
-    virtual_text = true,
-    signs = {
-        text = {
-            [vim.diagnostic.severity.ERROR] = "✘",
-            [vim.diagnostic.severity.WARN]  = "▲",
-            [vim.diagnostic.severity.HINT]  = "⚑",
-            [vim.diagnostic.severity.INFO]  = "»",
-        },
-    },
-    underline = true,
-    update_in_insert = false,
-    severity_sort = true,
-    float = {
-        border = "rounded",
-        source = true,
-    },
-})
 
 -- Create undodir if missing
 vim.fn.mkdir(os.getenv("HOME") .. "/.local/share/nvim/undodir", "p")

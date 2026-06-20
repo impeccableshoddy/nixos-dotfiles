@@ -44,12 +44,6 @@ map("n", "N", "Nzzzv")
 -- Disable Ex mode
 map("n", "Q", "<nop>")
 
--- Window navigation (tmux-navigator handles these when in tmux)
-map("n", "<C-h>", "<C-w>h")
-map("n", "<C-j>", "<C-w>j")
-map("n", "<C-k>", "<C-w>k")
-map("n", "<C-l>", "<C-w>l")
-
 -- Splits
 map("n", "<C-]>", ":vsplit<CR>", { desc = "Split vertical" })
 map("n", "<leader>-", ":split<CR>", { desc = "Split horizontal" })
@@ -75,7 +69,7 @@ map("n", "<leader>k", "<cmd>lnext<CR>zz")
 map("n", "<leader>j", "<cmd>lprev<CR>zz")
 
 -- Diagnostics
-map("n", "<leader>d", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+map("n", "<leader>dd", vim.diagnostic.open_float, { desc = "Show diagnostic" })
 map("n", "<leader>z", function()
   if vim.diagnostic.is_enabled() then
     vim.diagnostic.enable(false)
@@ -100,7 +94,7 @@ map("n", "<leader>cc", "<cmd>!php-cs-fixer fix % --using-cache=no<cr>", { desc =
 map("n", "<leader>li", ":checkhealth vim.lsp<CR>", { desc = "LSP info" })
 
 -- C compile and run
-map("n", "<leader>m", function()
+map("n", "<leader>mm", function()
   if vim.bo.filetype ~= "c" then
     vim.notify("Not a C file", vim.log.levels.WARN, { title = "Compile" })
     return
@@ -138,7 +132,3 @@ map("n", "<leader>mr", function()
   vim.cmd("botright split | resize 12 | terminal " .. vim.fn.fnameescape(bin))
   vim.cmd("startinsert")
 end, { desc = "Run C binary" })
-
-map("n", "<leader>mn", ":cn<CR>", { desc = "Next error" })
-map("n", "<leader>mp", ":cp<CR>", { desc = "Prev error" })
-map("n", "<leader>mo", ":copen<CR>", { desc = "Open quickfix" })

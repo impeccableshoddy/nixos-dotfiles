@@ -7,7 +7,7 @@ TMPFILE="/tmp/screenshot-$(date +%s).png"
 # Freeze
 p=$(mktemp -u).fifo; mkfifo "$p"
 wayfreeze --after-freeze-timeout 100 --after-freeze-cmd "echo > $p" & wp=$!
-read -r < "$p"
+read -t 5 -r < "$p"
 
 # Select: drag = region, click = fullscreen
 if grim -g "$(slurp -d)" "$TMPFILE" 2>/dev/null; then

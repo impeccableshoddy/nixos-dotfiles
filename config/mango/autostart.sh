@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Start notification daemon
-mako >/dev/null 2>&1 &
-
 # Start wallpaper daemon
 awww-daemon >/dev/null 2>&1 &
 

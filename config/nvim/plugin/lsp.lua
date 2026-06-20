@@ -120,7 +120,7 @@ vim.lsp.config['phpls'] = {
   settings = {
     intelephense = {
       files = {
-        maxSize = 5000000,         -- default 5MB
+        maxSize = 5000000, -- default 5MB
       },
     },
   },
@@ -265,7 +265,6 @@ vim.lsp.config['templ'] = {
 
 vim.filetype.add({
   extension = {
-    h = 'c',
     c3 = 'c3',
     d = 'd',
     templ = 'templ',

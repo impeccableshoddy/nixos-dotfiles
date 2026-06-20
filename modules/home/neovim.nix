@@ -28,7 +28,6 @@ in {
 
     # Formatters
     stylua
-    nixpkgs-fmt
     black
     prettierd
     rustfmt
@@ -44,8 +43,8 @@ in {
     defaultEditor = true;
     vimAlias = true;
     viAlias = true;
-    withNodeJs = true;
-    withPython3 = true;
+    #withNodeJs = true;
+    #withPython3 = true;
 
     plugins = with pkgs.vimPlugins; [
       # Core
