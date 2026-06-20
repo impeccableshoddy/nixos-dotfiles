@@ -11,8 +11,6 @@ map("i", "jk", "<Esc>")
 map("i", "<C-c>", "<Esc>")
 
 -- File operations
-map("n", "<leader>w", ":w<CR>", { desc = "Save" })
-map("n", "<leader>q", ":q<CR>", { desc = "Quit" })
 map("n", "<C-q>", ":q!<CR>", { desc = "Force quit" })
 
 -- File browser
@@ -43,10 +41,6 @@ map("n", "<C-u>", "<C-u>zz")
 map("n", "n", "nzzzv")
 map("n", "N", "Nzzzv")
 
--- Paste without replacing clipboard
-map("x", "<leader>p", [["_dP]], { desc = "Paste no yank" })
-map({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete no yank" })
-
 -- Disable Ex mode
 map("n", "Q", "<nop>")
 
@@ -71,8 +65,6 @@ map({ "n", "v", "i" }, "<M-a>", "<Esc>ggVG", { desc = "Select all" })
 map({ "n", "v", "i" }, "<M-l>", "<Esc>0V$", { desc = "Select line" })
 
 -- Quickfix
-map("n", "<C-j>", "<cmd>cnext<CR>zz")
-map("n", "<C-k>", "<cmd>cprev<CR>zz")
 map("n", "<leader>cl", ":cclose<CR>", { silent = true, desc = "Close quickfix" })
 map("n", "<leader>co", ":copen<CR>", { silent = true, desc = "Open quickfix" })
 map("n", "<leader>cn", ":cnext<CR>zz", { desc = "Next quickfix" })
@@ -83,7 +75,7 @@ map("n", "<leader>k", "<cmd>lnext<CR>zz")
 map("n", "<leader>j", "<cmd>lprev<CR>zz")
 
 -- Diagnostics
-map("n", "<leader>x", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+map("n", "<leader>d", vim.diagnostic.open_float, { desc = "Show diagnostic" })
 map("n", "<leader>z", function()
   if vim.diagnostic.is_enabled() then
     vim.diagnostic.enable(false)

@@ -12,6 +12,12 @@ in {
     nil
     alejandra
     nodejs
+    intelephense
+    serve-d
+    c3-lsp
+    haskell-language-server
+    templ
+    clang-tools
     gcc
     typescript-language-server
     vscode-langservers-extracted # cssls, htmlls, jsonls
