@@ -8,12 +8,20 @@ NixOS 26.05 configuration for a single machine. Managed entirely through flakes 
 </p>
 
 <p align="center">
+  <img src="screenshots/ff_opaque.png" width="700" /><br/>
+  <img src="screenshots/ff_transparent.png" width="700" /><br/>
+  <sup>Ranma in the termmm</sup>
+</p>
+
+<p align="center">
   <img src="screenshots/desktop_tiling.png" width="700" />
+  <sup>Window tiling and notifications</sup>
   <img src="screenshots/notifications.png" width="700" />
 </p>
 
 <p align="center">
   <img src="screenshots/neovim.png" width="700" />
+  <sup>Neovim and tmux workflow</sup>
   <img src="screenshots/neovim_and_tmux.png" width="700" />
 </p>
 
