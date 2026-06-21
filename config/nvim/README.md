@@ -3,8 +3,8 @@
 Minimal Lua configuration managed through Nix. Plugins and LSP servers are declared in [`modules/home/neovim.nix`](../../modules/home/neovim.nix); runtime config lives here and is loaded via `initLua` in that same module.
 
 <p align="center">
-  <img src="../screenshots/neovim.png" width="420" />
-  <img src="../screenshots/neovim_and_tmux.png" width="420" />
+  <img src="../../screenshots/neovim.png" width="900" />
+  <img src="../../screenshots/neovim_and_tmux.png" width="900" />
 </p>
 
 ## Layout
