@@ -2,7 +2,14 @@
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
     "logo": {
         "type": "file",
-        "source": "~/nixos-dotfiles/config/fastfetch/nuannichuan.txt"
+        "source": "~/nixos-dotfiles/config/fastfetch/nuannichuan_colored.txt",
+        "color": {
+            "1": "38;2;235;235;235",
+            "2": "38;2;217;122;108",
+            "3": "38;2;140;99;140",
+            "4": "38;2;122;168;150",
+            "5": "38;2;212;165;90"
+        }
     },
     "display": {
         "separator": "  ➜  ",
