@@ -1,6 +1,6 @@
 # nixos-dotfiles
 
-NixOS 26.05 configuration for a single machine. Managed entirely through flakes — no mutable state outside `/nix/store` (except the Mango WM config, which is symlinked for live editing).
+NixOS 26.05 configuration for a single machine. Managed entirely through flakes — no mutable state outside `/nix/store` (except the Mango WM config and Fastfetch config.jsonc, which are symlinked for live editing).
 
 <p align="center">
   <img src="screenshots/desktop_overview.png" width="700" /><br/>
