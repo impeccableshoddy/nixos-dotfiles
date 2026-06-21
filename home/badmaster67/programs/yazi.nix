@@ -18,7 +18,7 @@
         ];
       };
       open = {
-        rules = [
+        prepend_rules = [
           {
             mime = "application/pdf";
             use = "pdf";
