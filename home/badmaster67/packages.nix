@@ -17,6 +17,7 @@
     mupdf
     ripgrep
     fastfetch
+    mangayomi
     legcord
     libreoffice-fresh
     gimp
@@ -24,6 +25,9 @@
     bluetui
     impala
     bc
+    jq
+    yq
+    wl-mirror
     zen-browser
   ];
 }

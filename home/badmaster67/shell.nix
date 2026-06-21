@@ -4,7 +4,6 @@
     shellAliases = {
       nrb = "sudo nixos-rebuild switch --flake ~/nixos-dotfiles#${hostname}";
       nup = "nix flake update --flake ~/nixos-dotfiles && sudo nixos-rebuild switch --flake ~/nixos-dotfiles#${hostname}";
-      y = "yazi";
     };
   };
 

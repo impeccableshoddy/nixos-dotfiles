@@ -31,11 +31,6 @@ in {
     black
     prettierd
     rustfmt
-
-    # Tools
-    ripgrep
-    fd
-    fzf
   ];
 
   programs.neovim = {

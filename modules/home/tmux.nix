@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   programs.tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
@@ -18,9 +16,9 @@
       set -g status-position top
       set -g status-interval 5
       set -g status-left-length 20
-      set -g status-right-length 60
+      set -g status-right-length 80
       set -g status-left " #S "
-      set -g status-right " %d-%b %H:%M "
+      set -g status-right "#(cat /sys/class/power_supply/BAT0/capacity)% #(cat /sys/class/power_supply/BAT0/status | head -c1) | %d-%b %H:%M "
       set -g window-status-format " #I:#W "
       set -g window-status-current-format " #I:#W "
 

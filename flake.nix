@@ -1,5 +1,5 @@
 {
-  description = "oubliette-btw";
+  description = "My nix setup";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-26.05";
