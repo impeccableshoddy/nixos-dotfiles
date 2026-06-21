@@ -8,13 +8,13 @@ NixOS 26.05 configuration for a single machine. Managed entirely through flakes 
 </p>
 
 <p align="center">
-  <img src="screenshots/desktop_tiling.png" width="420" />
-  <img src="screenshots/notifications.png" width="420" />
+  <img src="screenshots/desktop_tiling.png" width="700" />
+  <img src="screenshots/notifications.png" width="700" />
 </p>
 
 <p align="center">
-  <img src="screenshots/neovim.png" width="420" />
-  <img src="screenshots/neovim_and_tmux.png" width="420" />
+  <img src="screenshots/neovim.png" width="700" />
+  <img src="screenshots/neovim_and_tmux.png" width="700" />
 </p>
 
 ## What's Inside
