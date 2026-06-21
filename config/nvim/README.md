@@ -2,6 +2,11 @@
 
 Minimal Lua configuration managed through Nix. Plugins and LSP servers are declared in [`modules/home/neovim.nix`](../../modules/home/neovim.nix); runtime config lives here and is loaded via `initLua` in that same module.
 
+<p align="center">
+  <img src="../screenshots/neovim.png" width="420" />
+  <img src="../screenshots/neovim_and_tmux.png" width="420" />
+</p>
+
 ## Layout
 
 ```
@@ -199,6 +204,8 @@ Configured via the `vim.lsp.config` API. All servers are auto-enabled on matchin
 | C / C++ | clang-format |
 
 ## Custom Plugins
+
+Written by [tony-btw](https://github.com/tonybanters).
 
 **tonycontext** — Lightweight sticky context header. Shows the enclosing function/class signature at the top of the window when it scrolls out of view. One level of depth, supports C, PHP, Lua, Rust, Go, JS, Zig, and Nix.
 
