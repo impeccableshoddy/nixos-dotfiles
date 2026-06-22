@@ -4,7 +4,7 @@ NixOS 26.05 flake config for a single machine. Everything is declarative except 
 
 This is my daily driver built from scratch after switching from [Omarchy](https://github.com/basecamp/omarchy) (DHH's Arch + Hyprland setup) for 7+ months. Purely due to giving in to the hype around NixOS, and a fatal disease for man known as too much time at hand. MangoWM got pulled in the middle being the new hot girl in town after months of being stuck with Hyprland. Neovim config written around custom plugins from [tony-btw](https://github.com/tonybanters), and wired up with a coloring pipeline that goes from wallpaper → Stylix → manual overrides → Fastfetch.
 
-This was never designed as a starter kit or a copy-paste ricing setup. It's a personal daily driver built to improve my workflow first and foremost. If you can derive any value from this on top of that, then that's a plus in my book.
+This was never designed as a starter kit or a hyper riced setup. It's a personal daily driver built to improve my workflow first and foremost. If you can derive any value from this on top of that, then that's a plus in my book.
 
 <p align="center">
   <img src="screenshots/desktop_overview.png" width="700" /><br/>
