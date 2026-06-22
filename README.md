@@ -1,8 +1,8 @@
 # nixos-dotfiles
 
-NixOS 26.05 flake config for a single machine. Everything is declarative except two files that are symlinked for live editing — the Mango WM config and the Fastfetch config.jsonc — because I want to tweak those without a rebuild.
+NixOS 26.05 flake for a single machine. Everything is declarative except two files that are symlinked for live editing — the Mango WM config and the Fastfetch config.jsonc — because I want to tweak those without a rebuild.
 
-This is my daily driver built from scratch after switching from [Omarchy](https://github.com/basecamp/omarchy) (DHH's Arch + Hyprland setup) for 7+ months. Purely due to giving in to the hype around NixOS, and a fatal disease for man known as too much time at hand. MangoWM got pulled in the middle being the new hot girl in town after months of being stuck with Hyprland. Neovim config written around custom plugins from [tony-btw](https://github.com/tonybanters), and wired up with a coloring pipeline that goes from wallpaper → Stylix → manual overrides → Fastfetch.
+This is my daily driver built from scratch after switching from [Omarchy](https://github.com/basecamp/omarchy) (DHH's Arch + Hyprland setup) after 7+ months. Purely due to giving in to the hype around NixOS, and a fatal disease for man known as too much time at hand. MangoWM got pulled in the middle being the new hot girl in town after months of being stuck with Hyprland. Neovim config written around custom plugins from [tony-btw](https://github.com/tonybanters), and wired up with a coloring pipeline that goes from wallpaper → Stylix → manual overrides → Fastfetch.
 
 This was never designed as a starter kit or a hyper riced setup. It's a personal daily driver built to improve my workflow first and foremost. If you can derive any value from this on top of that, then that's a plus in my book.
 
@@ -22,44 +22,121 @@ This was never designed as a starter kit or a hyper riced setup. It's a personal
   <img src="screenshots/notifications.png" width="700" />
 </p>
 
-## What I Use
+---
 
-### Window Manager
+## What this actually is
 
-[Mango WM](https://github.com/mangowm/mango) — a tiling Wayland compositor built on dwl (itself a dwm port to wlroots). I found it randomly and it looked cool and I just genuinely wanted to try it and experience something other than Hyprland, which I had previously experienced via omarchy. The entire config is 206 lines and reloads live on `Super+r` since it's symlinked.
+| Component | Choice |
+|---|---|
+| **Compositor** | [Mango WM](https://github.com/mangowm/mango) — dwl fork, single binary, key=value config, live reload on `Super+r` |
+| **Terminal** | foot — transparent background, Stylix-colored |
+| **Multiplexer** | tmux + vim-tmux-navigator |
+| **Editor** | Neovim 0.12+ — native `vim.lsp.config` API, 15 LSP servers, 5 custom plugins from tony-btw |
+| **Shell** | bash + fzf + zoxide |
+| **Prompt** | starship — custom `girl` palette (ink, slate, rose, taupe, blush, deepred) |
+| **Colors** | Stylix (wallpaper-derived Catppuccin Mocha) + manual overrides. **Stylix is explicitly disabled for Neovim** — colors come from catppuccin-nvim directly. |
+| **Input** | [keyd](https://github.com/rvaiya/keyd) — Caps Lock acts as Escape when tapped, Control when held. Config lives in `modules/system/services.nix`. |
 
-Mango has its own [ArchWiki page](https://wiki.archlinux.org/title/MangoWM). The upstream README describes it as "dwm for Wayland, but actually usable" — it keeps dwl's lightweight single-binary philosophy while adding the features that make a compositor work day-to-day: smooth animations (window open/move/close, tag transitions), window effects via scenefx (blur, shadows, corner radius), a built-in overview mode (hycov-style), a sway-like scratchpad, and the scroller layout as a first-class option alongside the usual tiling, vertical etc. Per-tag layout assignment means you can run tag 3 on scroller while everything else stays on tile.
+Fonts: FiraCode, Work Sans, EB Garamond.
 
-Both Mango and Hyprland use the same external tools for the desktop shell — bars (waybar), launchers (rofi/fuzzel), notifications (mako/swaync), screenshots (grim/slurp), clipboard (cliphist/wl-clipboard), and lock screens (swaylock). The difference is in the compositor itself: Hyprland is a larger independent wlroots compositor with its own plugin system and Hyprlang config format, while Mango is a dwl fork with a simple `key=value` config, no plugin system, and a smaller codebase that builds in seconds. If you've used dwm or dwl, Mango feels familiar — one binary, one config file, everything else is standard Wayland tools you wire yourself.
+---
 
-### Coloring Pipeline
+## Quick start (if you insist on cloning)
 
-The coloring system ties the wallpaper to every visual element in the desktop — terminal, prompt, editor, and system info display — through a pipeline that goes through Stylix for base generation, then gets overridden per-application where needed.
+```sh
+git clone https://github.com/impeccableshoddy/nixos-dotfiles.git ~/nixos-dotfiles
+cd ~/nixos-dotfiles
+```
+
+**Three things to change before your first build:**
+
+1. **Hostname and username** — edit `flake.nix`. They are `let` bindings at the top:
+
+   ```nix
+   hostname = "oubliette-btw";
+   username = "badmaster67";
+   ```
+
+   These flow through `specialArgs` into both the NixOS system and home-manager. You only need to change them here and rename the directories `hosts/oubliette-btw/` and `home/badmaster67/` to match.
+
+2. **Hardware config** — replace `hosts/<your-hostname>/hardware-configuration.nix` with your own. Mine was generated by `nixos-generate-config` and is completely stock AMD laptop stuff. If you have the same hardware class, it might even work unchanged, but generate your own to be safe.
+
+3. **Repo path** — `modules/home/neovim.nix` hardcodes the string `"nixos-dotfiles"` in `initLua`:
+
+   ```nix
+   nvimDir = "/home/${username}/nixos-dotfiles/config/nvim";
+   ```
+
+   If you clone to a different directory name, update this.
+
+Then review `home/<your-username>/packages.nix` for personal package choices you may want to add or remove.
+
+**Build:**
+
+```sh
+sudo nixos-rebuild switch --flake ~/nixos-dotfiles#<your-hostname>
+```
+
+Reboot once. Mango WM starts automatically via autologin.
+
+Shell aliases `nrb` and `nup` are provided for rebuild and update.
+
+---
+
+## Daily workflow
+
+| Task | How |
+|------|-----|
+| **Rebuild config** | `nrb` (alias for `nixos-rebuild switch --flake ...`) |
+| **Update inputs + rebuild** | `nup` (alias for `nix flake update && nrb`) |
+| **Change live wallpaper** | `wp-chooser` (in `config/mango/`) — a fuzzel menu that picks from `~/nixos-dotfiles/wallpapers/` and calls `awww` with a random transition. This only changes the desktop background. It does **not** regenerate Stylix colors. |
+| **Change the color pipeline** | Replace the wallpaper path in `modules/system/stylix.nix`, then `nrb`. Stylix regenerates the palette at build time. |
+| **Edit Mango WM** | Edit `config/mango/config.conf`, press `Super+r`. Reloads instantly. No rebuild. |
+| **Edit Fastfetch** | Edit `config/fastfetch/config.jsonc`. Symlinked to `~/.config/fastfetch/`, so changes apply on next run. No rebuild. |
+| **Edit Neovim runtime** | Edit files in `config/nvim/`. Plugin changes require a rebuild because Nix manages the plugin store. Runtime config (keybinds, options) is live. |
+
+---
+
+## Coloring pipeline
 
 ```
 wallpapers/girl.jpg
         │
         ▼
     Stylix          ← generates base Catppuccin Mocha palette from the wallpaper
-        │              and applies it to everything: GTK, cursor, QT, etc.
+        │              and applies to GTK, cursor, QT, foot terminal, etc.
+        │              NOTE: Stylix is DISABLED for Neovim (see below).
         ▼
-    Manual overrides ← starship prompt uses a custom "girl" palette
-        │                Neovim uses Catppuccin Mocha (via catppuccin-nvim plugin)
-        │                foot terminal inherits Stylix but I can override
-        │                Fastfetch uses $N color tokens (see below)
+    Manual overrides ← starship prompt uses custom "girl" palette
+        │                Neovim uses catppuccin-nvim (Mocha, transparent bg)
+        │                foot terminal inherits Stylix but can be overridden
         ▼
     Fastfetch $1-$5  ← ANSI color tokens that match the wallpaper colors exactly
 ```
 
-The Fastfetch config uses numbered color tokens (`"1"` through `"5"`) in the `logo.color` block instead of named ANSI colors. This solves the alignment-breaking problem that happens when you mix full ANSI escape sequences like `\x1b[38;2;R;G;Bm` with regular text — the escape bytes get counted as visible characters by most terminal emulators, pushing everything out of alignment. By defining colors as numbered tokens in the JSON schema, Fastfetch handles the length calculation internally and everything lines up.
+**Why Fastfetch uses numbered tokens:** Full ANSI escape sequences like `\x1b[38;2;R;G;Bm` contain invisible bytes that terminal emulators count as visible characters, breaking alignment. Fastfetch's JSON schema handles numbered tokens (`"1"` through `"5"`) internally for length calculation, so everything lines up.
 
-Starship uses its own custom `girl` palette with six named colors (ink, slate, rose, taupe, blush, deepred) that I picked to complement the Stylix output. The prompt format stacks hostname → directory → git → language modules left to right with powerline-style separators.
+---
 
-### Neovim
+## Mango WM
 
-The editor config is the deepest part of this repo. See [`config/nvim/README.md`](config/nvim/README.md) for full keybinds and plugin docs — here I'm covering the architecture and the decisions.
+[Mango WM](https://github.com/mangowm/mango) — a tiling Wayland compositor built on dwl (itself a dwm port to wlroots). It has its own [ArchWiki page](https://wiki.archlinux.org/title/MangoWM). The upstream README describes it as "dwm for Wayland, but actually usable."
 
-**Plugin ecosystem (5 custom, from [tony-btw](https://github.com/tonybanters)):**
+It keeps dwl's lightweight single-binary philosophy while adding the features that make a compositor work day-to-day: smooth animations (window open/move/close, tag transitions), window effects via scenefx (blur, shadows, corner radius), a built-in overview mode (hycov-style), a sway-like scratchpad, and the scroller layout as a first-class option alongside the usual tiling, vertical, etc. Per-tag layout assignment means you can run tag 3 on scroller while everything else stays on tile.
+
+Both Mango and Hyprland use the same external tools for the desktop shell — bars (waybar), launchers (rofi/fuzzel), notifications (mako/swaync), screenshots (grim/slurp), clipboard (cliphist/wl-clipboard), and lock screens (swaylock). The difference is in the compositor itself: Hyprland is a larger independent wlroots compositor with its own plugin system and Hyprlang config format, while Mango is a dwl fork with a simple `key=value` config, no plugin system, and a smaller codebase that builds in seconds. If you've used dwm or dwl, Mango feels familiar — one binary, one config file, everything else is standard Wayland tools you wire yourself.
+
+My external tools: mako, fuzzel, grim, slurp, cliphist.
+
+The entire config is 206 lines and reloads live on `Super+r` since it's symlinked. `eDP-1` is hardcoded as the monitor output — check yours with `mangoctl outputs` and change it.
+
+---
+
+## Neovim
+
+This is the deepest part of the repo. For full keybinds, see [`config/nvim/README.md`](config/nvim/README.md). Here is the architecture and the honest gotchas.
+
+### Plugin ecosystem (5 custom, from [tony-btw](https://github.com/tonybanters))
 
 | Plugin | Lines | What it does |
 |--------|-------|-------------|
@@ -69,13 +146,19 @@ The editor config is the deepest part of this repo. See [`config/nvim/README.md`
 | quickformat | 40 | Reformats single-line parenthesized content into multi-line layout |
 | flterm | 55 | Persistent floating terminal that preserves its buffer across toggles |
 
-I made minor modifications to these from tony-btw's originals — mainly adapting the indent wiring in tonysitter to work with the current nvim-treesitter API (more on that below).
+I made minor modifications to these from tony-btw's originals — mainly adapting the indent wiring in tonysitter to work with the current nvim-treesitter API.
 
-**LSP setup:** All 14 servers are configured via Neovim 0.12+'s native `vim.lsp.config` API. `nvim-lspconfig` is installed in the plugin list but only for `cmp_nvim_lsp` capabilities — no per-server setup calls, no lazy loading, no lspconfig configs. Every server is declared in one file with `filetypes`, `root_markers`, `cmd`, and `capabilities`, then bulk-enabled at the bottom with a loop over `vim.lsp.config._configs`. This is the API Neovim is standardizing on, so it's forward-compatible.
+### LSP setup
 
-**Treesitter queries:** 6,313 lines across 12 query directories covering highlights, textobjects, and injections. These live in `config/nvim/queries/` and get loaded via Neovim's runtime path. The Rust highlights alone are 531 lines — these cover things the upstream queries miss or handle differently.
+All 15 servers are configured via Neovim 0.12+'s native `vim.lsp.config` API. `nvim-lspconfig` is installed in the plugin list but **only** for `cmp_nvim_lsp.default_capabilities()` — no per-server setup calls, no lazy loading, no lspconfig configs. Every server is declared in `plugin/lsp.lua` with `filetypes`, `root_markers`, `cmd`, and `capabilities`, then bulk-enabled at the bottom with a loop over `vim.lsp.config._configs`. This is the API Neovim is standardizing on, so it's forward-compatible.
 
-**Indentation — what actually works and what doesn't:**
+**Installed servers:** lua-language-server, vscode-css-language-server, intelephense, typescript-language-server, zls, nil, rust-analyzer, clangd, c3-lsp, serve-d, vscode-json-language-server, haskell-language-server-wrapper, gopls, templ, texlab.
+
+### Treesitter queries
+
+6,313 lines across 12 query directories (55 files) covering highlights, locals, textobjects, injections, and folds. These live in `config/nvim/queries/` and **override** upstream nvim-treesitter queries via runtime path prepending. The Rust highlights alone are 531 lines — covering things the upstream queries miss or handle differently.
+
+### Indentation — what actually works and what doesn't
 
 The nvim-treesitter plugin rewrote its API on the `main` branch. The old `require("nvim-treesitter").setup({indent = {enable = true}})` is dead code — `setup()` now only handles `install_dir`, and the `indent` key is silently ignored. So we wire indentation manually in tonysitter's FileType autocmd:
 
@@ -88,7 +171,7 @@ end
 
 This only activates for languages that have `indents.scm` query files (bundled with nvim-treesitter via `withAllGrammars`). Languages without indent queries fall back to Vim's built-in `autoindent`, which just copies the previous line's whitespace — it has zero awareness of syntax or scope.
 
-**Formatting — three paths, and why they can fight each other:**
+### Formatting — three paths, and why they can fight each other
 
 There are three completely separate formatting mechanisms, and understanding which one fires when is important:
 
@@ -98,42 +181,33 @@ There are three completely separate formatting mechanisms, and understanding whi
 
 3. **`<F3>` (LSP format)** — sends a `textDocument/formatting` request to the attached language server. For C/C++, clangd runs clang-format internally with its own default style (LLVM = 2-space indent). This path ignores Conform's `prepend_args` entirely. I excluded C/C++/PHP from the BufWritePre auto-format to avoid this conflict.
 
-The mismatch between Conform's clang-format (4-space, via prepend_args) and clangd's clang-format (2-space, via LLVM default) is why F3 in C files will format to 2-space indent while Neovim's shiftwidth is 4. I use `<leader>cf` for C files to keep them consistent. If you want F3 to also give 4-space, add `--fallback-style={BasedOnStyle: LLVM, IndentWidth: 4}` to clangd's cmd — or drop a `.clang-format` file in your project root.
+The mismatch between Conform's clang-format (4-space, via `prepend_args`) and clangd's clang-format (2-space, via LLVM default) is why `F3` in C files will format to 2-space indent while Neovim's `shiftwidth` is 4. I use `<leader>cf` for C files to keep them consistent. If you want `F3` to also give 4-space, add `--fallback-style={BasedOnStyle: LLVM, IndentWidth: 4}` to clangd's `cmd` — or drop a `.clang-format` file in your project root.
 
-**What breaks if you just clone and build:**
+---
 
-- The hostname `oubliette-btw` and username `badmaster67` are hardcoded in `flake.nix` and directory structure. You need to rename both.
-- `config/mango/config.conf` has `eDP-1` hardcoded as the monitor. Check your output name with `mangoctl outputs` and change it.
-- `home/badmaster67/packages.nix` has personal package choices. Review it — there might be things you don't need or things missing.
-- The wallpaper at `wallpapers/girl.jpg` is referenced by Stylix. If it doesn't exist, the color pipeline breaks. Drop your own wallpaper there.
-- Fastfetch configs reference logo files (`nuannichuan.txt`, `nuannichuan_colored.txt`, `cat-fu.txt`, `dizziness.txt`). They're included in the repo so they'll work out of the box. Only `nuannichuan_colored.txt` uses ANSI color sequences — the rest are plain text art. Replace them with your own if you want.
-- `initLua` in `modules/home/neovim.nix` uses an absolute path (`/home/${username}/nixos-dotfiles/config/nvim`). The username substitution handles the user part, but the repo path (`nixos-dotfiles`) is assumed. If you clone to a different directory name, update `neovim.nix`.
-- This is tested on a single machine (laptop with AMD integrated graphics). Desktop GPU, multi-monitor, or different hardware may need tweaks to Mango WM config or hardware-configuration.nix.
+## Honest admissions (things held together with duct tape)
 
-## Setup
+1. **`vim.lsp.config._configs` is private API.** The underscore prefix means it's internal. It works, it's the only way to bulk-enable right now, and Neovim hasn't shipped a public alternative yet. But if they rename or restructure it, all 15 LSP servers silently stop attaching. No error, no warning, just nothing works.
 
-```sh
-git clone https://github.com/impeccableshoddy/nixos-dotfiles.git ~/nixos-dotfiles
-cd ~/nixos-dotfiles
-```
+2. **Monkey-patching `vim.lsp.util.open_floating_preview`.** I replace this core Neovim function globally to set border/width defaults. This affects every plugin that calls it, not just LSP. The `duplicate-set-field` diagnostic disable comment in the code proves I know it's wrong. A cleaner approach would be wrapping it in an autocmd or helper, but the global replace works and is simple.
 
-**Three things to change before your first build:**
+3. **`require'nvim-treesitter'.indentexpr()` is an internal call.** The public `setup({indent={enable=true}})` stopped working on the main branch, so I call the internal module function directly. It's the correct workaround right now, but that function path could change in a treesitter update. Mild duct tape since the maintainer is unlikely to break it without a replacement.
 
-1. **Hostname** — rename `hosts/oubliette-btw/` to your hostname, update `hostname` in `flake.nix`
-2. **Username** — rename `home/badmaster67/` to your username, update `username` in `flake.nix`
-3. **Hardware config** — replace `hosts/<your-hostname>/hardware-configuration.nix` with your own (generate with `nixos-generate-config` on the target machine)
+---
 
-Then review `home/<your-username>/packages.nix` for packages you want to add or remove.
+## What will break if you clone
 
-Build and apply:
+- **The hostname `oubliette-btw` and username `badmaster67`** are set in `flake.nix` as `let` bindings. You need to change them there and rename the directories `hosts/` and `home/` to match.
+- **`config/mango/config.conf` has `eDP-1` hardcoded** as the monitor. Check your output name with `mangoctl outputs` and change it.
+- **`home/badmaster67/packages.nix`** has personal package choices. Review it — there might be things you don't need or things missing.
+- **The wallpaper at `wallpapers/girl.jpg`** is referenced by Stylix. If it doesn't exist, the color pipeline breaks. Drop your own wallpaper there and update the path in `modules/system/stylix.nix` if you want.
+- **Fastfetch configs reference logo files** (`nuannichuan.txt`, `nuannichuan_colored.txt`, `cat-fu.txt`, `dizziness.txt`). They're included in the repo so they'll work out of the box. Only `nuannichuan_colored.txt` uses ANSI color sequences — the rest are plain text art. Replace them with your own if you want.
+- **`initLua` in `modules/home/neovim.nix`** uses an absolute path (`/home/${username}/nixos-dotfiles/config/nvim`). The username is parameterized, but the repo directory name (`nixos-dotfiles`) is hardcoded. If you clone to a different directory name, update `neovim.nix`.
+- **This is tested on a single machine** (laptop with AMD integrated graphics). Desktop GPU, multi-monitor, or different hardware may need tweaks to Mango WM config or `hardware-configuration.nix`.
 
-```sh
-sudo nixos-rebuild switch --flake ~/nixos-dotfiles#<your-hostname>
-```
+---
 
-Reboot once. Mango WM starts automatically via autologin.
-
-## Structure
+## Repo structure
 
 ```
 .
@@ -146,7 +220,7 @@ Reboot once. Mango WM starts automatically via autologin.
 │   └── nvim/                        # Neovim runtime config
 │       ├── init.lua                 # Entry point
 │       ├── lua/config/              # options.lua, keybinds.lua
-│       ├── lua/plugins/             # ui, editor, telescope, completion, tools
+│       ├── lua/plugins/             # ui, editor, telescope, completion, tools, markdown
 │       ├── plugin/                  # Auto-sourced: lsp, tonysitter, tonycontext, docgen, flterm, quickformat
 │       ├── after/ftplugin/          # Filetype overrides (nix, hare, man, jsonc, goon)
 │       └── queries/                # Custom Treesitter queries (6,313 lines, 12 directories)
@@ -154,7 +228,7 @@ Reboot once. Mango WM starts automatically via autologin.
 │   ├── system/                      # NixOS system modules
 │   │   ├── boot.nix                 # Bootloader (Limine), swap, GC
 │   │   ├── desktop-mango.nix        # Mango WM, Thunar, autologin
-│   │   ├── fonts.nix                # JetBrainsMono, Work Sans, EB Garamond
+│   │   ├── fonts.nix                # FiraCode, Work Sans, EB Garamond
 │   │   ├── networking.nix           # NetworkManager, iwd, firewall, DNS
 │   │   ├── services.nix             # keyd (Caps→Ctrl/Esc), Bluetooth, backlight
 │   │   ├── stylix.nix               # Color generation from wallpaper, opacity, fonts
@@ -167,7 +241,7 @@ Reboot once. Mango WM starts automatically via autologin.
 │   └── oubliette-btw/               # Machine-specific NixOS config
 │       ├── default.nix              # Imports all system modules
 │       ├── configuration.nix        # System-level settings
-│       └── hardware-configuration.nix
+│       └── hardware-configuration.nix  # Stock nixos-generate-config output
 └── home/
     └── badmaster67/
         ├── default.nix              # Home-manager entry point
@@ -182,17 +256,7 @@ Reboot once. Mango WM starts automatically via autologin.
             └── fastfetch.nix         # Fastfetch + symlink
 ```
 
-## Rebuild & Update
-
-```sh
-# Rebuild
-sudo nixos-rebuild switch --flake ~/nixos-dotfiles#oubliette-btw
-
-# Update flake inputs + rebuild
-nix flake update --flake ~/nixos-dotfiles && sudo nixos-rebuild switch --flake ~/nixos-dotfiles#oubliette-btw
-```
-
-Shell aliases `nrb` and `nup` are provided for these.
+---
 
 ## Flake Inputs
 
@@ -204,3 +268,4 @@ Shell aliases `nrb` and `nup` are provided for these.
 | stylix | Color generation from wallpaper |
 | mango | Window manager |
 | zen-browser | Browser |
+```

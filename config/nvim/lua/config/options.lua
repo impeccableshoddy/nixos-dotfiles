@@ -13,7 +13,7 @@ opt.autoindent = true
 
 -- Filetype-specific indent (2 spaces)
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "javascript", "typescript", "html", "css", "lua", "nix" },
+  pattern = { "javascript", "typescript", "html", "css", "lua", "nix", "markdown" },
   callback = function()
     vim.opt_local.tabstop = 2
     vim.opt_local.softtabstop = 2

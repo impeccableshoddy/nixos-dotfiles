@@ -25,6 +25,8 @@ in {
     rust-analyzer
     gopls
     zls
+    texlab
+    python3Packages.pylatexenc
 
     # Formatters
     stylua
@@ -83,6 +85,9 @@ in {
       lualine-nvim
       catppuccin-nvim
       undotree
+
+      #Markdown
+      render-markdown-nvim
 
       # Tools
       vim-visual-multi

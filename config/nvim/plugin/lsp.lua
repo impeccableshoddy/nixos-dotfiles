@@ -272,6 +272,27 @@ vim.lsp.config["templ"] = {
   capabilities = caps,
 }
 
+vim.lsp.config["texlab"] = {
+  cmd = { "texlab" },
+  filetypes = { "tex", "plaintex", "bib" },
+  root_markers = { ".git", "main.tex", "document.tex", "Makefile" },
+  capabilities = caps,
+  settings = {
+    texlab = {
+      build = {
+        onSave = true,
+        forwardSearchAfter = false,
+      },
+      forwardSearch = {
+        enabled = false,
+      },
+      chktex = {
+        onOpenAndSave = true,
+      },
+    },
+  },
+}
+
 vim.filetype.add({
   extension = {
     c3 = "c3",
