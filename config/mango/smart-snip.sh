@@ -9,13 +9,17 @@ p=$(mktemp -u).fifo; mkfifo "$p"
 wayfreeze --after-freeze-timeout 100 --after-freeze-cmd "echo > $p" & wp=$!
 read -t 5 -r < "$p"
 
-# Select: drag = region, click = fullscreen
-if grim -g "$(slurp -d)" "$TMPFILE" 2>/dev/null; then
-    :
-else
-    grim "$TMPFILE"
+# -o adds output rects so click = select output (monitor), drag = region, Escape = cancel
+GEOM=$(slurp -o -d)
+SLURP_STATUS=$?
+
+if [ "$SLURP_STATUS" -ne 0 ] || [ -z "$GEOM" ]; then
+    kill "$wp" 2>/dev/null; rm -f "$p"
+    rm -f "$TMPFILE"
+    exit 0
 fi
 
+grim -g "$GEOM" "$TMPFILE"
 kill "$wp" 2>/dev/null; rm -f "$p"
 
 if [ "$mode" = "save" ]; then
