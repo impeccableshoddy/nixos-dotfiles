@@ -1,13 +1,15 @@
 # Neovim
 
-Plugins and LSP servers are declared in [`modules/home/neovim.nix`](../../modules/home/neovim.nix). The runtime config lives here and gets loaded via `initLua` in that module, which prepends this directory to the runtime path and sources `init.lua`.
+This is built around Neovim 0.12+'s native `vim.lsp.config` API, five custom plugins from [tony-btw](https://github.com/tonybanters), and 6,313 lines of Treesitter queries that override upstream highlights. Stylix is explicitly disabled (`stylix.targets.neovim.enable = false`) — colors come from catppuccin-nvim (Mocha, transparent background) because I wanted the editor consistent regardless of what wallpaper was loaded. `withNodeJs` and `withPython3` are commented out in `modules/home/neovim.nix` because I don't need them and don't want the bloat.
 
-Stylix is disabled for Neovim (`stylix.targets.neovim.enable = false`) — colors come from the catppuccin-nvim plugin instead, set to Mocha with transparent background.
+This is me trying to document my personal config.
 
 <p align="center">
   <img src="../../screenshots/neovim.png" width="900" />
   <img src="../../screenshots/neovim_and_tmux.png" width="900" />
 </p>
+
+---
 
 ## Layout
 
@@ -23,9 +25,10 @@ nvim/
 │       ├── editor.lua            # Treesitter, Gitsigns, Autopairs, Mini (ai + surround), Matchup
 │       ├── telescope.lua         # Fuzzy finder + Harpoon
 │       ├── completion.lua        # nvim-cmp + LuaSnip
-│       └── tools.lua             # Conform (formatting), Fugitive, Easy Align
-├── plugin/                       # Auto-sourced on startup
-│   ├── lsp.lua                   # 14 LSP servers via vim.lsp.config, diagnostic config, buffer maps
+│       ├── tools.lua             # Conform (formatting), Fugitive, Easy Align
+│       └── markdown.lua          # render-markdown for inline markdown/LaTeX preview
+├── plugin/                       # Auto-sourced by Neovim's runtime (NOT required by init.lua)
+│   ├── lsp.lua                   # 15 LSP servers via vim.lsp.config, diagnostic config, buffer maps
 │   ├── tonysitter.lua            # TS indent wiring, downcase!/upcase! directives, af/if text objects
 │   ├── tonycontext.lua           # Sticky context header (replaces treesitter-context)
 │   ├── flterm.lua                # Persistent floating terminal
@@ -35,9 +38,21 @@ nvim/
 └── queries/                      # Custom Treesitter queries (6,313 lines, 12 directories)
 ```
 
+Files in `plugin/` are auto-sourced by Neovim's runtime — `init.lua` does not `require()` them. The `lua/plugins/` files are required explicitly in `init.lua`. This matters if you're trying to trace load order.
+
+## Why this exists
+
+I started with [tony-btw's](https://github.com/tonybanters) Neovim config and kept the parts that still work. The custom plugins (tonysitter, tonycontext, docgen, quickformat, flterm), the 6,313 lines of treesitter queries, and the native `vim.lsp.config` bulk-enabled LSP setup are all his. I adapted the treesitter indent wiring because `setup({indent={enable=true}})` broke on nvim-treesitter's `main` branch — the rest is largely unchanged.
+
+The query overrides exist because upstream nvim-treesitter queries miss things or handle them differently. Rust highlights alone are 531 lines of gaps. Rather than fighting PRs, tony overrode them locally via runtime path prepending. I kept it because it works.
+
+I added `render-markdown` because I wanted inline markdown and LaTeX preview without a browser tab — headings with overlay icons, pipe tables in rounded preset, code blocks with padding, LaTeX converted to unicode via pylatexenc. Toggle with `<leader>rm`.
+
+That's the extent of my original contribution.
+
 ## Keybinds
 
-Leader is `<Space>`. Buffer-local LSP and Gitsigns binds are set on attach — they only exist when a server or git repo is active.
+Leader is `<Space>`. Buffer-local LSP and Gitsigns binds are set on attach — they only exist when a server or git repo is active. These are bound in my fingers, not necessarily in yours.
 
 ### General
 
@@ -46,7 +61,7 @@ Leader is `<Space>`. Buffer-local LSP and Gitsigns binds are set on attach — t
 | `jk` / `<C-c>` | `i` | Exit insert mode |
 | `<C-q>` | `n` | Force quit |
 | `<leader>cd` | `n` | Open netrw |
-| `<leader>rl` | `n` | Reload Neovim config |
+| `<leader>rl` | `n` | Reload Neovim config (`dofile init.lua`) |
 | `<leader><leader>` | `n` | Source current file |
 | `<leader>h` | `n` | Clear search highlights |
 | `Q` | `n` | Disabled (no Ex mode) |
@@ -66,10 +81,10 @@ Leader is `<Space>`. Buffer-local LSP and Gitsigns binds are set on attach — t
 
 | Key | Mode | Action |
 |---|---|---|
-| `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` | `n` | Navigate splits |
+| `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` | `n` | Navigate splits (tmux-navigator) |
 | `<C-]>` | `n` | Vertical split |
 | `<leader>-` | `n` | Horizontal split |
-| `<Arrow keys>` | `n` | Resize splits |
+| `<Arrow keys>` | `n` | Resize splits (±2) |
 | `<leader>ft` | `n` | Toggle floating terminal |
 
 ### Quickfix & Location List
@@ -99,7 +114,7 @@ Leader is `<Space>`. Buffer-local LSP and Gitsigns binds are set on attach — t
 | `<leader>fo` | `n` | Recent files |
 | `<leader>fb` | `n` | Buffers |
 | `<leader>fh` | `n` | Help tags |
-| `<leader>fm` | `n` | Man pages |
+| `<leader>fm` | `n` | Man pages (all sections) |
 | `<leader>fq` | `n` | Quickfix list (Telescope) |
 | `<leader>fi` | `n` | Find in nvim config |
 | `<leader>a` | `n` | Harpoon add file |
@@ -168,6 +183,7 @@ Compile errors get pushed to the quickfix list with the `errorformat` from `opti
 | `<leader>dg` | `n` | Generate docstring (C/Go/Rust/Python) |
 | `<leader>qq` | `n` | Reformat parenthesized content to multi-line |
 | `<leader>th` / `<leader>tu` | `n` | Hide / unhide sticky context header |
+| `<leader>rm` | `n` | Toggle render-markdown |
 | `af` / `if` | `x` / `o` | Select around / inside function (Treesitter text object) |
 | `ga` | `n` / `x` | Easy Align |
 
@@ -183,13 +199,15 @@ Compile errors get pushed to the quickfix list with the `errorformat` from `opti
 
 Sources: LSP → LuaSnip → path → buffer (keyword length 3).
 
+---
+
 ## LSP Servers
 
-14 servers, all configured via `vim.lsp.config` in a single file ([`plugin/lsp.lua`](plugin/lsp.lua)), bulk-enabled at the bottom by iterating `vim.lsp.config._configs`. `nvim-lspconfig` is in the plugin list but only for `cmp_nvim_lsp` default capabilities — no lspconfig server configs, no lazy loading.
+15 servers, all configured via `vim.lsp.config` in a single file ([`plugin/lsp.lua`](plugin/lsp.lua)), bulk-enabled at the bottom by iterating `vim.lsp.config._configs`. `nvim-lspconfig` is in the plugin list but only for `cmp_nvim_lsp` default capabilities — no lspconfig server configs, no lazy loading.
 
 | Server | Filetypes | Notes |
 |---|---|---|
-| clangd | c, cpp, objc, objcpp | Root: `compile_commands.json`, `.clangd`, `Makefile` |
+| clangd | c, cpp, objc, objcpp | Root: `compile_commands.json`, `.clangd`, `configure.ac`, `Makefile`, `.git` |
 | gopls | go, gomod, gowork, gotmpl | Staticcheck enabled, unused params/ST1000/ST1003 off |
 | rust-analyzer | rust | `cargo { allFeatures = true }`, formats via rustfmt |
 | ts_ls | js, jsx, ts, tsx | `completeFunctionCalls = true` |
@@ -203,6 +221,9 @@ Sources: LSP → LuaSnip → path → buffer (keyword length 3).
 | jsonls | json, jsonc | Root: `package.json`, `config.jsonc` |
 | cssls | css, scss, less | Root: `package.json` |
 | templ | templ | Root: `go.mod` |
+| texlab | tex, plaintex, bib | Build on save, chktex on open/save, forwardSearch disabled |
+
+---
 
 ## Formatters (Conform)
 
@@ -214,6 +235,8 @@ Sources: LSP → LuaSnip → path → buffer (keyword length 3).
 | JS / TS / HTML / CSS | prettierd | |
 | Rust | rustfmt | |
 | C / C++ | clang-format | 4-space indent via `prepend_args`, ColumnLimit 100 |
+
+---
 
 ## Custom Plugins
 
@@ -228,6 +251,8 @@ Originally from [tony-btw](https://github.com/tonybanters). I made minor modific
 **quickformat** (40 lines) — Reformats a single-line parenthesized list into a multi-line layout. Finds the first `(...)` on the current line, splits on commas, and indents each item 8 spaces with trailing commas. Bound to `<leader>qq`.
 
 **flterm** (55 lines) — Persistent floating terminal. Toggles a bordered floating window at 80% of editor width/height. The terminal buffer survives across toggles — closing the window doesn't kill the shell, so background processes keep running. Escape requires double-tap (`<esc><esc>`) since single escape goes to terminal mode. Bound to `<leader>ft` and also available as `:Flterm`.
+
+---
 
 ## Treesitter Queries
 
@@ -250,6 +275,8 @@ Originally from [tony-btw](https://github.com/tonybanters). I made minor modific
 
 Rust highlights alone are 531 lines — covering things the upstream queries miss or handle differently.
 
+---
+
 ## Filetype Overrides
 
 Five files in `after/ftplugin/` that set options Neovim doesn't configure by default:
@@ -262,11 +289,15 @@ Five files in `after/ftplugin/` that set options Neovim doesn't configure by def
 | `man.lua` | Relative numbers off, wrap on, linebreak, conceal off |
 | `jsonc.lua` | 2-space indent, expandtab |
 
+---
+
 ## Indentation System
 
-Default is 4-space with expandtab. The `FileType` autocmd in `options.lua` overrides to 2-space for JS, TS, HTML, CSS, Lua, and Nix. The `after/ftplugin/` overrides handle the rest (nix, hare, goon, jsonc, man).
+Default is 4-space with expandtab. The `FileType` autocmd in `options.lua` overrides to 2-space for JS, TS, HTML, CSS, markdown, Lua, and Nix. The `after/ftplugin/` overrides handle the rest (nix, hare, goon, jsonc, man).
 
 Treesitter-based indentation is wired by tonysitter — it activates per-language when the installed treesitter grammar ships `indents.scm` queries. Languages without indent queries fall back to Vim's built-in `autoindent` (copies previous line whitespace, zero syntax awareness).
+
+---
 
 ## Formatting — Three Paths
 
@@ -279,3 +310,25 @@ This is worth understanding because the three paths have independent indent conf
 3. **`<F3>` (LSP format)** — sends `textDocument/formatting` to the attached language server. For C/C++, clangd runs clang-format internally with its own default style (LLVM = 2-space indent). This path ignores Conform's `prepend_args`. C/C++/PHP are excluded from BufWritePre auto-format to avoid this conflict — the LSP hook checks the filetype and skips those.
 
 Use `<leader>cf` for C files. If you want F3 to also give 4-space, either add `--fallback-style={BasedOnStyle: LLVM, IndentWidth: 4}` to clangd's cmd or drop a `.clang-format` file in the project root.
+
+---
+
+## Honest admissions (things held together with duct tape)
+
+1. **`vim.lsp.config._configs` is private API.** The underscore prefix means it's internal. It works, it's the only way to bulk-enable right now, and Neovim hasn't shipped a public alternative yet. But if they rename or restructure it, all 15 LSP servers silently stop attaching. No error, no warning, just nothing works.
+
+2. **Monkey-patching `vim.lsp.util.open_floating_preview`.** I replace this core Neovim function globally to set border/width defaults. This means hover docs, diagnostic floats, signature help, and anything else that opens a floating preview all get the same border/width. The `duplicate-set-field` diagnostic disable comment in the code proves I know it's wrong. A cleaner approach would be wrapping it in an autocmd or helper, but the global replace works and is simple.
+
+3. **`require'nvim-treesitter'.indentexpr()` is an internal call.** The public `setup({indent={enable=true}})` stopped working on the main branch, so I call the internal module function directly. It's the correct workaround right now, but that function path could change in a treesitter update. Mild duct tape since the maintainer is unlikely to break it without a replacement.
+
+---
+
+## What to know if you're stealing from this
+
+- **`initLua` hardcodes the repo path.** `modules/home/neovim.nix` sets `nvimDir = "/home/${username}/nixos-dotfiles/config/nvim"`. The username is parameterized, but the directory name `nixos-dotfiles` is not. If you clone to a different path, update this.
+- **Plugin changes require a rebuild.** Nix manages the plugin store. Runtime config (keybinds, options, autocommands) is live-edited. Plugin additions/removals need `nixos-rebuild`.
+- **The 6,313 lines of queries are overrides, not supplements.** They replace upstream nvim-treesitter queries via runtime path ordering. If you update nvim-treesitter and captures changed upstream, your overrides may break or shadow new features.
+- **15 LSP servers are bulk-enabled via private API.** See honest admission #1. If Neovim changes `vim.lsp.config._configs`, your LSP setup goes silent.
+- **C formatting has two different indent configs.** Conform gives 4-space, LSP format gives 2-space. If you don't read the "Three Paths" section above, you'll be confused why your C code keeps jumping between indent widths.
+- **This assumes Neovim 0.12+.** The `vim.lsp.config` API does not exist in earlier versions. If you're on stable distro Neovim, none of the LSP setup works.
+- **render-markdown's LaTeX rendering needs pylatexenc** — it's included in `modules/home/neovim.nix`. Without it, inline LaTeX expressions render as raw source instead of unicode.
