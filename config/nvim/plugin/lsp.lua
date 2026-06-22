@@ -218,7 +218,7 @@ vim.lsp.config['serve_d'] = {
 }
 
 vim.lsp.config['jsonls'] = {
-  cmd = { 'vscode-json-languageserver', '--stdio' },
+  cmd = { 'vscode-json-language-server', '--stdio' },
   filetypes = { 'json', 'jsonc' },
   root_markers = { 'package.json', '.git', 'config.jsonc' },
   capabilities = caps,

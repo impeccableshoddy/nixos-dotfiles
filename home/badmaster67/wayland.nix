@@ -32,6 +32,7 @@ in {
     wl-clipboard
     cliphist
     wf-recorder
+    wl-mirror
     fuzzel
     libnotify
     playerctl

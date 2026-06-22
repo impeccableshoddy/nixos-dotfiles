@@ -16,6 +16,12 @@
             desc = "zathura";
           }
         ];
+        epub = [
+          {
+            run = "mupdf \"$@\"";
+            desc = "mupdf";
+          }
+        ];
       };
       open = {
         prepend_rules = [
@@ -25,7 +31,7 @@
           }
           {
             mime = "application/epub+zip";
-            use = "pdf";
+            use = "epub";
           }
         ];
       };

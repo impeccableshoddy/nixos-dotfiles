@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-WP_DIRS=("${HOME}/Downloads/host" "${HOME}/nixos-dotfiles/wallpapers")
+WP_DIRS=("${HOME}/nixos-dotfiles/wallpapers")
 CACHE_FILE="${HOME}/.cache/current_bg"
 
 mkdir -p "$(dirname "$CACHE_FILE")"

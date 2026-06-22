@@ -27,7 +27,6 @@
     bc
     jq
     yq
-    wl-mirror
     zen-browser
   ];
 }
