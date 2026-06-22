@@ -18,8 +18,8 @@
         ];
         epub = [
           {
-            run = "mupdf \"$@\"";
-            desc = "mupdf";
+            run = "ebook-viewer \"$@\"";
+            desc = "ebook-viewer";
           }
         ];
       };
@@ -28,6 +28,10 @@
           {
             mime = "application/pdf";
             use = "pdf";
+          }
+          {
+            url = "*.epub";
+            use = "epub";
           }
           {
             mime = "application/epub+zip";

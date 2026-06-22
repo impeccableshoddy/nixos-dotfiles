@@ -14,7 +14,7 @@
     unzip
     p7zip
     bemoji
-    mupdf
+    calibre
     ripgrep
     fastfetch
     mangayomi
