@@ -8,7 +8,7 @@
     polarity = "dark";
     autoEnable = true;
     fonts = {
-      monospace.name = "JetBrainsMono Nerd Font";
+      monospace.name = "FiraCode Nerd Font";
       sansSerif.name = "Work Sans";
       serif.name = "EB Garamond";
       sizes = {

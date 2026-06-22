@@ -6,7 +6,6 @@
   fonts.packages = with pkgs; [
     work-sans
     eb-garamond
-    nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
   ];
 
