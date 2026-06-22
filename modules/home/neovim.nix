@@ -21,7 +21,7 @@ in {
     clang-tools
     gcc
     typescript-language-server
-    vscode-langservers-extracted # cssls, htmlls, jsonls
+    vscode-langservers-extracted # cssls, jsonls
     rust-analyzer
     gopls
     zls
