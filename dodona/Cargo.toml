@@ -1,6 +1,6 @@
 [package]
 name = "dodona"
-version = "0.1.0-scaffold"
+version = "0.1.0-wayland"
 edition = "2021"
 description = "Phosphor-CRT control surface for NixOS + Mango WM"
 license = "MIT"
@@ -10,6 +10,9 @@ license = "MIT"
 [dependencies]
 # Async runtime. Multi-thread because zbus spawns background tasks.
 # signal = SIGINT/SIGTERM handling for clean shutdown.
+# NOTE: not yet wired into the event loop — see future commit
+# `dodona(core): wire tokio + wayland event merging`. For now the main
+# loop is calloop-driven; tokio is declared so the dep tree stabilizes.
 tokio = { version = "1", features = [
     "rt-multi-thread",
     "macros",
@@ -21,26 +24,36 @@ tokio = { version = "1", features = [
     "process",
 ] }
 
+# Event loop. Pairs with smithay-client-toolkit's calloop integration.
+# signals feature = SIGINT/SIGTERM via signalfd (Linux-only; harmless
+# no-op on other platforms — the signals source is cfg'd out).
+calloop = { version = "0.13", features = ["signals"] }
+
 # Wayland client + layer-shell. Layer-shell (zwlr_layer_shell_v1) is built
 # in via wayland-protocols-wlr — no feature flag needed.
 smithay-client-toolkit = "0.19"
 
 # CPU 2D rendering. Skia-quality, no GPU dependency, deterministic.
+# Not yet used — wired in future commit `dodona(render): wire tiny-skia
+# pixmap commit to wayland buffer`. Declared now to stabilize the dep tree.
 tiny-skia = "0.11"
 
 # Text shaping and layout. Defaults give std + swash + fontconfig (Linux).
+# Not yet used — wired in future commit `dodona(render): cosmic-text
+# integration for ui text`.
 cosmic-text = "0.12"
 
 # DBus (NetworkManager, WirePlumber, MPRIS, notifications).
 # Default features are async-io + blocking-api — we swap to tokio.
+# Not yet used — wired in future data source commits.
 zbus = { version = "5", default-features = false, features = ["tokio"] }
 
 # File watches on /proc and /sys.
+# Not yet used — wired in future data source commits.
 notify = "6"
 
 # Unix syscalls (signals, fds, statfs, clock_gettime).
-# Features added per-module as each data source is implemented
-# (signal, fs, time, etc.).
+# Features added per-module as each data source is implemented.
 nix = "0.28"
 
 # Serialization + config parsing (mango config, mmsg output).
@@ -56,15 +69,14 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # GeoIP lookup (GeoLite2). Pure Rust reader, no C deps.
+# Not yet used — wired in future commit `dodona(data): implement geoip`.
 maxminddb = "0.24"
 
 # Audio playback. Defaults are decoders (flac/vorbis/wav/mp3).
 # Linux backend is ALSA via cpal 0.15 (transparently works through pipewire-alsa).
+# Not yet used — wired in future commit `dodona(sound): implement player`.
 rodio = "0.19"
 
 # Sync channels for Wayland ↔ async handoff. Lower latency than tokio mpsc
-# for UI events.
+# for UI events. Not yet used — wired when tokio integration lands.
 crossbeam-channel = "0.5"
-
-# NOTE: build.rs will need a synth dependency (e.g. `hound` for WAV writing)
-# when we implement sound cue generation in a future commit.

@@ -1,7 +1,7 @@
 //! Dodona — entry point.
 //!
-//! Parses args, sets up the tokio runtime, initializes logging, and
-//! enters the main event loop. See docs/ARCHITECTURE.md §Process model.
+//! Parses args, sets up logging, connects to Wayland, and enters the
+//! main event loop. See docs/ARCHITECTURE.md §Process model.
 
 use tracing_subscriber::EnvFilter;
 
@@ -12,8 +12,7 @@ mod render;
 mod sound;
 mod widgets;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
@@ -26,12 +25,22 @@ async fn main() -> anyhow::Result<()> {
         "see docs/SCOPE.md for what this is, docs/ARCHITECTURE.md for how it works"
     );
 
-    // Scaffold only — the real work comes in subsequent commits:
-    //   1. dodona(core): connect to wayland and create layer-shell surfaces
-    //   2. dodona(render): wire tiny-skia pixmap commit to wayland buffer
-    //   3. dodona(data): implement cpu source with /proc/stat parser
-    //   ... and so on per docs/ARCHITECTURE.md
-    tracing::warn!("scaffolding only — no wayland connection, no render loop, exiting");
+    // Connect to Wayland and create the topbar layer surface.
+    // (Future commits add the side rails, bottom status, mission control,
+    // launcher, and notification surfaces.)
+    let (app, conn, event_queue) = core::wayland::connect()?;
+
+    // Run the event loop. Blocks until ESC, SIGINT, SIGTERM, or compositor
+    // close. Returns cleanly on exit.
+    //
+    // TODO (future commit: `dodona(core): wire tokio + wayland event merging`):
+    //   - Build a tokio runtime (2 worker threads) SEPARATELY from the
+    //     calloop main loop (calloop stays on the main thread per
+    //     docs/ARCHITECTURE.md §Threading model)
+    //   - Spawn data source tasks on tokio (cpu, mem, net, etc.)
+    //   - Crossbeam-channel from tokio tasks → calloop source for
+    //     UI event delivery
+    core::event_loop::run(app, conn, event_queue)?;
 
     Ok(())
 }
