@@ -67,5 +67,13 @@
         }
       ];
     };
+
+    # devShell for dodona development. Definition lives in
+    # dodona/devshell.nix to keep flake.nix lean and the dodona-specific
+    # tooling colocated with the dodona source.
+    # `nix develop` from the repo root drops you into this shell.
+    devShells.${system}.default = import ./dodona/devshell.nix {
+      pkgs = nixpkgs.legacyPackages.${system};
+    };
   };
 }

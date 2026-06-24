@@ -31,7 +31,10 @@ calloop = { version = "0.13", features = ["signals"] }
 
 # Wayland client + layer-shell. Layer-shell (zwlr_layer_shell_v1) is built
 # in via wayland-protocols-wlr — no feature flag needed.
-smithay-client-toolkit = "0.19"
+# `calloop` feature is REQUIRED — event_loop.rs imports calloop and
+# calloop-wayland-source from smithay_client_toolkit::reexports, and both
+# re-exports are feature-gated behind this flag in sctk 0.19.
+smithay-client-toolkit = { version = "0.19", features = ["calloop"] }
 
 # CPU 2D rendering. Skia-quality, no GPU dependency, deterministic.
 # Not yet used — wired in future commit `dodona(render): wire tiny-skia
