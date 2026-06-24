@@ -35,6 +35,7 @@ calloop = { version = "0.13", features = ["signals"] }
 # calloop-wayland-source from smithay_client_toolkit::reexports, and both
 # re-exports are feature-gated behind this flag in sctk 0.19.
 smithay-client-toolkit = { version = "0.19", features = ["calloop"] }
+wayland-client = "0.31"
 
 # CPU 2D rendering. Skia-quality, no GPU dependency, deterministic.
 # Not yet used — wired in future commit `dodona(render): wire tiny-skia

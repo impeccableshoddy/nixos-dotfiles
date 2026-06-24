@@ -1,14 +1,5 @@
 # Dev shell for dodona development.
-#
 # `nix develop` from the repo root enters this shell.
-# Returns a mkShell derivation with the Rust toolchain + all native deps
-# needed to `cargo build` dodona.
-#
-# Why no fenix input: nixpkgs' rust toolchain is fine for development and
-# avoids adding a flake input. If you need a specific Rust version pinned
-# or nightly features, swap the `cargo`/`rustc`/etc. lines for
-# `fenix.packages.${system}.stable.completeToolchain` and add fenix to
-# flake.nix inputs.
 { pkgs ? import <nixpkgs> {} }:
 
 pkgs.mkShell {
@@ -20,30 +11,34 @@ pkgs.mkShell {
     rustfmt
     rust-analyzer
 
-    # Native libs that dodona links against (or that its crates need
-    # at link time via system-dep). mkShell's `packages` puts them on
-    # PATH and sets up PKG_CONFIG_PATH for pkg-config to find.
+    # Build-time tooling
     pkg-config
+
+    # Wayland stack (smithay-client-toolkit + wayland-client)
     wayland
     wayland-protocols
+
+    # Input (xkbcommon-rs, pulled by sctk for keyboard handling)
     libxkbcommon
+
+    # Text rendering (cosmic-text → fontdb → fontconfig → freetype)
     fontconfig
     freetype
 
-    # Nice-to-haves
-    gdb # debugging panics with `run` then `bt full`
+    # Audio (rodio → cpal → alsa-sys). alsa-lib provides alsa.pc + libasound.so.
+    alsa-lib
+
+    # Nice-to-have
+    gdb
   ];
 
   # rust-analyzer needs rust-src for go-to-definition on std/core/alloc.
-  # rustPlatform.rustLibSrc is the nixpkgs-provided rust-src tarball.
   RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
 
-  # Sensible defaults for `cargo run` without prefixing env vars.
+  # Sensible defaults for `cargo run`.
   RUST_LOG = "dodona=debug,info";
   RUST_BACKTRACE = "1";
 
-  # Helps cosmic-text's fontconfig find configs in pure shells.
-  # Without this, fontconfig can still find system fonts via the default
-  # /etc/fonts/fonts.conf — but explicit is safer.
+  # Explicit fontconfig path — safer in pure shells.
   FONTCONFIG_FILE = "${pkgs.fontconfig.out}/etc/fonts/fonts.conf";
 }
