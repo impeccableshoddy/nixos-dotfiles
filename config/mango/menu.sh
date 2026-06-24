@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-fuzzel --font="JetBrainsMono Nerd Font:size=18"
+fuzzel --font="CommitMono Nerd Font:size=18"

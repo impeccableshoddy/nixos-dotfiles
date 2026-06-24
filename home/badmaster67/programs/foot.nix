@@ -3,7 +3,7 @@
     enable = true;
     settings = {
       main = {
-        font = lib.mkForce "FiraCode Nerd Font Mono:size=12";
+        font = lib.mkForce "CommitMono Nerd Font Mono:size=12";
         pad = "4x4";
         initial-window-size-chars = "90x25";
       };

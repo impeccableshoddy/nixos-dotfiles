@@ -1,0 +1,7 @@
+# Nix build artifacts
+/result
+/result-*
+
+# Local-only files
+*.swp
+.DS_Store

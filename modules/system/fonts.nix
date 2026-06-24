@@ -7,6 +7,8 @@
     work-sans
     eb-garamond
     nerd-fonts.fira-code
+    nerd-fonts.departure-mono
+    nerd-fonts.commit-mono
   ];
 
   home-manager.users.${username}.home.pointerCursor = {

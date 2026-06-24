@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   username,
   ...
 }: let
@@ -12,6 +13,7 @@ in {
   services.mako = {
     enable = true;
     settings = {
+      font = lib.mkForce "CommitMono Nerd Font 13";
       default-timeout = 5000;
       border-size = 2;
       border-radius = 8;
