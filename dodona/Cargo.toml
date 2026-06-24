@@ -1,0 +1,70 @@
+[package]
+name = "dodona"
+version = "0.1.0-scaffold"
+edition = "2021"
+description = "Phosphor-CRT control surface for NixOS + Mango WM"
+license = "MIT"
+# See docs/DEPENDENCIES.md for rationale on each crate.
+# See docs/ARCHITECTURE.md for the module layout.
+
+[dependencies]
+# Async runtime. Multi-thread because zbus spawns background tasks.
+# signal = SIGINT/SIGTERM handling for clean shutdown.
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "macros",
+    "time",
+    "sync",
+    "fs",
+    "io-util",
+    "signal",
+    "process",
+] }
+
+# Wayland client + layer-shell. Layer-shell (zwlr_layer_shell_v1) is built
+# in via wayland-protocols-wlr — no feature flag needed.
+smithay-client-toolkit = "0.19"
+
+# CPU 2D rendering. Skia-quality, no GPU dependency, deterministic.
+tiny-skia = "0.11"
+
+# Text shaping and layout. Defaults give std + swash + fontconfig (Linux).
+cosmic-text = "0.12"
+
+# DBus (NetworkManager, WirePlumber, MPRIS, notifications).
+# Default features are async-io + blocking-api — we swap to tokio.
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+
+# File watches on /proc and /sys.
+notify = "6"
+
+# Unix syscalls (signals, fds, statfs, clock_gettime).
+# Features added per-module as each data source is implemented
+# (signal, fs, time, etc.).
+nix = "0.28"
+
+# Serialization + config parsing (mango config, mmsg output).
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+
+# Error handling. anyhow at boundaries, thiserror for typed errors in modules.
+anyhow = "1"
+thiserror = "1"
+
+# Structured logging. Async-aware, zero-cost when disabled.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# GeoIP lookup (GeoLite2). Pure Rust reader, no C deps.
+maxminddb = "0.24"
+
+# Audio playback. Defaults are decoders (flac/vorbis/wav/mp3).
+# Linux backend is ALSA via cpal 0.15 (transparently works through pipewire-alsa).
+rodio = "0.19"
+
+# Sync channels for Wayland ↔ async handoff. Lower latency than tokio mpsc
+# for UI events.
+crossbeam-channel = "0.5"
+
+# NOTE: build.rs will need a synth dependency (e.g. `hound` for WAV writing)
+# when we implement sound cue generation in a future commit.

@@ -1,0 +1,12 @@
+# Rust build artifacts
+/target
+
+# Generated at build time by build.rs (see docs/SOUND_DESIGN.md)
+/assets/sounds/*.wav
+
+# GeoIP DB fetched separately — see docs/DEPENDENCIES.md §GeoIP database
+/assets/geoip/*.mmdb
+
+# Nix build symlinks (sandbox / local)
+/result
+/result-*
