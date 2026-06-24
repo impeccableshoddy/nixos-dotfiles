@@ -8,6 +8,9 @@
   nvimDir = "/home/${username}/nixos-dotfiles/config/nvim";
 in {
   home.packages = with pkgs; [
+    #Tree-sitter CLI (used by :checkhealth nvim-treesitter to verify parsers)
+    tree-sitter
+
     # LSP servers
     lua-language-server
     nil
@@ -83,7 +86,6 @@ in {
 
       # UI
       lualine-nvim
-      catppuccin-nvim
       undotree
 
       #Markdown

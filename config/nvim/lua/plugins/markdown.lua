@@ -7,7 +7,8 @@ require("render-markdown").setup({
   -- 󰲡󰲣󰲥󰲧󰲩󰲫 replace the # marks, full-width colored backgrounds
   heading = {
     enabled = true,
-    signs = true,
+    sign = true, -- renamed: signs -> sign (boolean toggle)
+    signs = { "󰫎 " }, -- icon shown in sign column per heading level
     position = "overlay",
     width = "full",
     icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
