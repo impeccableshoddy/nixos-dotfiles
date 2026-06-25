@@ -24,3 +24,6 @@
 //! - Implement DBus proxy for WirePlumber's default sink
 //! - Implement `wpctl` fallback via `tokio::process::Command`
 //! - Spawn async task with DBus signal listener + 30s sanity timer
+
+use crate::core::event_loop::UiEvent;
+pub fn spawn(_tx: calloop::channel::SyncSender<UiEvent>) {}

@@ -22,3 +22,7 @@
 //! - Implement `parse_proc_diskstats(content: &str) -> HashMap<String, DiskCounters>`
 //! - Use `nix::sys::statfs::statfs(path)` for capacity
 //! - Spawn async task polling at 1s
+
+use crate::core::event_loop::UiEvent;
+pub fn spawn(_tx: calloop::channel::SyncSender<UiEvent>) {}
+

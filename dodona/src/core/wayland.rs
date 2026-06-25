@@ -1,31 +1,18 @@
 //! Wayland connection + layer-shell surface registration.
 //!
-//! Wraps `smithay-client-toolkit` 0.19 to:
-//!   - Connect to the Wayland display
-//!   - Bind wl_registry (via RegistryState), wl_compositor, wl_shm,
-//!     wl_seat, wl_output
-//!   - Bind zwlr_layer_shell_v1
-//!   - Create the top bar layer surface (Top layer, anchored TOP|LEFT|RIGHT,
-//!     exclusive zone = bar height, full width)
+//! ONE full-screen Background layer surface. Everything (top readouts,
+//! side gauges, bottom status) is drawn as regions on this single canvas.
+//! Windows tile freely over it. No separate surfaces, no exclusive zones.
 //!
-//! ## Scope of this commit
-//!
-//! ONE surface (the topbar) as proof-of-life. Future commits add the side
-//! rails, bottom status, mission control, launcher, and notification
-//! surfaces. When we have multiple surfaces, the surface-state management
-//! logic moves to `core::surface`.
-//!
-//! ## API verification
-//!
-//! All APIs verified against smithay-client-toolkit 0.19.2 docs.rs + the
-//! v0.19.2 `simple_layer.rs` and `simple_window.rs` examples. Key
-//! corrections from the initial stub (which guessed the API):
-//!   - Module path is `shell::wlr_layer`, NOT `shell::layer`
-//!   - The registry trait the App implements is `ProvidesRegistryState`,
-//!     NOT `RegistryHandler` (that one is for SCTK's own state types)
-//!   - The shm pool type is `shm::slot::SlotPool`, NOT `MemPool` (retired
-//!     in 0.18)
-//!   - `WaylandSource` is at `reexports::calloop_wayland_source::WaylandSource`
+//! Design system (per docs/PALETTE.md, docs/SCOPE.md):
+//!   - BG solid #222222, no wallpaper, no gradients
+//!   - Single hue (ACCENT #ffa133), brightness/opacity for hierarchy
+//!   - Persistent UI = flat, no glow. Glow only for active/alert.
+//!   - Typography: Departure Mono everywhere
+//!   - Data representation: graph for trends, gauge for single values,
+//!     text for clock, dots for workspaces
+
+use std::sync::Arc;
 
 use anyhow::Context;
 use smithay_client_toolkit::{
@@ -54,55 +41,59 @@ use wayland_client::{
     Connection, EventQueue, QueueHandle,
 };
 
-/// Bar height in pixels. Per docs/SCOPE.md the topbar is a single row of
-/// compact readouts in Departure Mono. 30px fits ~14pt mono comfortably.
-pub const BAR_HEIGHT: u32 = 30;
+use crate::core::event_loop::AppState;
+use crate::render::{SkiaSurface, TextRenderer, Theme};
 
-/// Background color per docs/PALETTE.md: solid #222222, opaque.
-/// ARGB8888 little-endian => bytes are B,G,R,A => 0xFF222222.
-const BG_COLOR: u32 = 0xFF222222;
+// --- Layout constants (8px grid per PALETTE.md spacing) ---
+const M: f32 = 8.0;           // base margin
+const TOPBAR_H: f32 = 24.0;   // top readout strip height (text fits at 12pt)
+const RAIL_W: f32 = 48.0;     // rail width (3px gauge + 8px gap + ~37px for label+value text)
+const GAUGE_W: f32 = 3.0;     // capillary gauge width
+const FONT_SM: f32 = 10.0;    // small labels
+const FONT_MD: f32 = 12.0;    // values and readouts
+const FONT_LG: f32 = 14.0;    // clock
 
-/// The single state struct that implements all SCTK handler traits.
-///
-/// Wayland's `QueueHandle<State>` is parameterized by ONE state type, so
-/// we need a single struct that implements every trait. This is the
-/// standard SCTK pattern — see the v0.19.2 examples.
-///
-/// When we add tokio integration (future commit), shared data sources
-/// will live in a separate `AppState` (per docs/ARCHITECTURE.md), and
-/// this struct will hold an `Arc<AppState>` for the render loop to read.
 pub struct App {
-    // --- SCTK state (registry + bound globals) ---
     pub registry_state: RegistryState,
     pub seat_state: SeatState,
     pub output_state: OutputState,
     pub shm: Shm,
 
-    // --- Top bar surface state ---
     pub layer: LayerSurface,
     pub pool: SlotPool,
     pub width: u32,
     pub height: u32,
     pub first_configure: bool,
 
-    // --- Input ---
     pub keyboard: Option<wl_keyboard::WlKeyboard>,
-
-    // --- Lifecycle ---
     pub exit: bool,
+
+    pub app_state: Arc<AppState>,
+    pub needs_redraw: bool,
+    pub skia: SkiaSurface,
+    pub text_renderer: TextRenderer,
+    pub theme: Theme,
+    pub qh: QueueHandle<Self>,
 }
 
 impl App {
-    /// Draw the current frame.
-    ///
-    /// For this commit: solid #222222 fill. Future commits will replace
-    /// this with a call into `render::skia` to draw the actual topbar
-    /// widgets (clock, workspaces, network, volume, battery, brightness).
     pub fn draw(&mut self, qh: &QueueHandle<Self>) {
         let width = self.width.max(1) as i32;
         let height = self.height.max(1) as i32;
         let stride = width * 4;
 
+        self.skia.resize(self.width.max(1), self.height.max(1));
+
+        // 1. Solid BG fill (#222222, no wallpaper, no gradients per PALETTE.md)
+        self.skia.clear(self.theme.bg);
+
+        // 2. Draw the instrument panel
+        self.draw_top_bar();
+        self.draw_left_rail();
+        self.draw_right_rail();
+        self.draw_bottom_strip();
+
+        // 3. Commit to Wayland
         let (buffer, canvas) = match self
             .pool
             .create_buffer(width, height, stride, wl_shm::Format::Argb8888)
@@ -114,17 +105,10 @@ impl App {
             }
         };
 
-        // Solid BG fill. ARGB8888 LE = bytes B,G,R,A.
-        let color = BG_COLOR.to_le_bytes();
-        for px in canvas.chunks_exact_mut(4) {
-            px.copy_from_slice(&color);
-        }
+        self.skia.commit_to_shm(canvas);
 
         let surface = self.layer.wl_surface();
         surface.damage_buffer(0, 0, width, height);
-        // Request a frame callback so the compositor can ask us to redraw.
-        // Not strictly needed for a static bar, but correct for future
-        // animated content (clock ms, scrolling graphs, etc.).
         surface.frame(qh, surface.clone());
 
         if let Err(e) = buffer.attach_to(surface) {
@@ -133,13 +117,229 @@ impl App {
         }
         self.layer.commit();
     }
+
+    // ── Top bar ──────────────────────────────────────────────────────
+    // A single 1px accent-faint separator line at y=TOPBAR_H.
+    // Readouts float above it in the clear space. No box, no panel fill.
+    // Layout: [workspace dots] ← margin → [DODONA] ← spacer → [clock] ← spacer → [date]
+    fn draw_top_bar(&mut self) {
+        let w = self.skia.width() as f32;
+
+        // Separator line at bottom of topbar zone (1px ACCENT_FAINT)
+        self.skia.hline(M, w - M, TOPBAR_H, self.theme.accent_faint, 1.0);
+
+        // Clock — centered, primary text (ACCENT_FULL per PALETTE.md)
+        let clock_str = self.app_state.clock.read().map(|g| g.time.clone()).unwrap_or_default();
+        let clock_w = self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            &clock_str,
+            w / 2.0 - 50.0,
+            4.0,
+            FONT_LG,
+            self.theme.accent_full,
+        );
+
+        // Date — right side, secondary text (ACCENT_DIM per PALETTE.md)
+        let date_str = self.app_state.clock.read().map(|g| g.date.clone()).unwrap_or_default();
+        self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            &date_str,
+            w - M - 120.0,
+            6.0,
+            FONT_SM,
+            self.theme.accent_dim,
+        );
+
+        // "DODONA" — left, after workspace dots area
+        self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            "DODONA",
+            M + 32.0,
+            4.0,
+            FONT_MD,
+            self.theme.accent_mid,
+        );
+
+        // Workspace dots (9 dots, active = ACCENT_FULL, inactive = ACCENT_FAINT)
+        let dot_r = 2.0;
+        let dot_gap = 6.0;
+        let dots_x = M + 4.0;
+        let dots_y = TOPBAR_H / 2.0;
+        for i in 0..9u32 {
+            let cx = dots_x + i as f32 * dot_gap;
+            let color = if i == 0 {
+                // TODO: read actual workspace from app_state
+                self.theme.accent_full
+            } else {
+                self.theme.accent_faint
+            };
+            // Draw dot as tiny filled rect (2x2 is close enough to a circle at this scale)
+            self.skia.fill_rect(cx - dot_r, dots_y - dot_r, dot_r * 2.0, dot_r * 2.0, color);
+        }
+    }
+
+    // ── Left rail ────────────────────────────────────────────────────
+    // CPU (with sparkline), RAM, GPU — capillary gauges
+    // Each gauge: 3px wide vertical fill line on the left, label + value
+    // text to the right of it. Total rail width ~48px.
+    fn draw_left_rail(&mut self) {
+        let h = self.skia.height() as f32;
+        let content_h = h - TOPBAR_H - M - 20.0; // leave room for bottom strip
+        let y_start = TOPBAR_H + M;
+        let gauge_h = (content_h - M * 2.0) / 3.0; // 3 gauges, 8px gap between
+
+        let cpu_val = self.app_state.cpu.read().map(|g| g.aggregate).unwrap_or(0.0);
+        self.draw_capillary_gauge(M, y_start, gauge_h, cpu_val, "CPU");
+
+        let ram_val = self.app_state.mem.read().map(|g| g.ram_pct).unwrap_or(0.0);
+        self.draw_capillary_gauge(M, y_start + gauge_h + M, gauge_h, ram_val, "RAM");
+
+        let gpu_val = self.app_state.gpu.read().map(|g| g.busy_pct as f32).unwrap_or(0.0);
+        self.draw_capillary_gauge(M, y_start + (gauge_h + M) * 2.0, gauge_h, gpu_val, "GPU");
+    }
+
+    // ── Right rail ───────────────────────────────────────────────────
+    // TEMP, DISK — capillary gauges, mirrored (gauge on right edge)
+    fn draw_right_rail(&mut self) {
+        let w = self.skia.width() as f32;
+        let h = self.skia.height() as f32;
+        let content_h = h - TOPBAR_H - M - 20.0;
+        let y_start = TOPBAR_H + M;
+        let gauge_h = (content_h - M) / 2.0; // 2 gauges, 8px gap
+
+        let temp_val = 0.0; // TODO: populate from temp data source
+        self.draw_capillary_gauge_right(w - M - GAUGE_W, y_start, gauge_h, temp_val, "TMP");
+
+        let disk_val = self.app_state.disk.read().map(|g| g.used_pct).unwrap_or(0.0);
+        self.draw_capillary_gauge_right(w - M - GAUGE_W, y_start + gauge_h + M, gauge_h, disk_val, "DSK");
+    }
+
+    // ── Bottom strip ────────────────────────────────────────────────
+    // 1px accent-faint line near bottom, media/git/notification ticker
+    fn draw_bottom_strip(&mut self) {
+        let w = self.skia.width() as f32;
+        let h = self.skia.height() as f32;
+        let y = h - 20.0;
+
+        // Separator line
+        self.skia.hline(M, w - M, y, self.theme.accent_faint, 1.0);
+
+        // Bottom status text (placeholder)
+        self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            "SYS NOMINAL",
+            M + 4.0,
+            y + 3.0,
+            FONT_SM,
+            self.theme.accent_faint,
+        );
+    }
+
+    // ── Capillary gauge (left rail) ────────────────────────────────
+    // A 3px wide vertical line that fills from bottom. Label above,
+    // value below. Track in BG_ELEVATED, fill in ACCENT_FULL.
+    // State colors per PALETTE.md: WARN = pulse (not implemented yet),
+    // ALARM = #ff2e66 solid.
+    fn draw_capillary_gauge(
+        &mut self,
+        x: f32,
+        y: f32,
+        h: f32,
+        value: f32,
+        label: &str,
+    ) {
+        // Track background (BG_ELEVATED per PALETTE.md)
+        self.skia.fill_rect(x, y, GAUGE_W, h, self.theme.bg_elevated);
+
+        // Fill from bottom proportional to value (0-100)
+        let fill_pct = (value / 100.0).clamp(0.0, 1.0);
+        let fill_h = h * fill_pct;
+        let fill_y = y + h - fill_h;
+
+        // Color per PALETTE.md state rules: default = ACCENT_FULL,
+        // ALARM = #ff2e66 (the one exception hue)
+        let fill_color = if value >= 90.0 {
+            self.theme.alarm  // ALARM state — the one new hue
+        } else {
+            self.theme.accent_full  // OK / WARN (behavior diff, not color diff)
+        };
+
+        self.skia.fill_rect(x, fill_y, GAUGE_W, fill_h, fill_color);
+
+        // Label above the gauge (ACCENT_DIM per PALETTE.md "secondary text")
+        self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            label,
+            x + GAUGE_W + 4.0,
+            y,
+            FONT_SM,
+            self.theme.accent_dim,
+        );
+
+        // Value readout below label (ACCENT_FULL per PALETTE.md "primary text")
+        let val_str = format!("{:.0}%", value);
+        self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            &val_str,
+            x + GAUGE_W + 4.0,
+            y + 12.0,
+            FONT_MD,
+            self.theme.accent_full,
+        );
+    }
+
+    // ── Capillary gauge (right rail, mirrored) ─────────────────────
+    // Same as left but gauge line is on the right edge, text to its left
+    fn draw_capillary_gauge_right(
+        &mut self,
+        gauge_x: f32,
+        y: f32,
+        h: f32,
+        value: f32,
+        label: &str,
+    ) {
+        // Track
+        self.skia.fill_rect(gauge_x, y, GAUGE_W, h, self.theme.bg_elevated);
+
+        // Fill from bottom
+        let fill_pct = (value / 100.0).clamp(0.0, 1.0);
+        let fill_h = h * fill_pct;
+        let fill_y = y + h - fill_h;
+
+        let fill_color = if value >= 90.0 {
+            self.theme.alarm
+        } else {
+            self.theme.accent_full
+        };
+
+        self.skia.fill_rect(gauge_x, fill_y, GAUGE_W, fill_h, fill_color);
+
+        // Label and value to the LEFT of the gauge
+        let text_right_edge = gauge_x - 4.0;
+
+        let val_str = format!("{:.0}%", value);
+        // Value first (right-aligned approximation)
+        self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            &val_str,
+            text_right_edge - 36.0,
+            y,
+            FONT_MD,
+            self.theme.accent_full,
+        );
+
+        self.text_renderer.draw_text(
+            self.skia.pixmap_mut(),
+            label,
+            text_right_edge - 36.0,
+            y + 14.0,
+            FONT_SM,
+            self.theme.accent_dim,
+        );
+    }
 }
 
-/// Connect to Wayland and create the top bar layer surface.
-///
-/// Returns the fully-initialized `App` plus the `Connection` and
-/// `EventQueue` (the event loop in `core::event_loop` needs all three
-/// to drive dispatch).
+/// Connect to Wayland and create the full-screen Background layer surface.
 pub fn connect() -> anyhow::Result<(App, Connection, EventQueue<App>)> {
     let conn = Connection::connect_to_env()
         .context("failed to connect to Wayland (is WAYLAND_DISPLAY set?)")?;
@@ -147,42 +347,34 @@ pub fn connect() -> anyhow::Result<(App, Connection, EventQueue<App>)> {
         registry_queue_init(&conn).context("failed to initialize Wayland registry")?;
     let qh = event_queue.handle();
 
-    // Bind SCTK state.
     let compositor = CompositorState::bind(&globals, &qh)
         .context("wl_compositor not available")?;
     let layer_shell = LayerShell::bind(&globals, &qh)
-        .context("wlr_layer_shell_v1 not available — compositor doesn't support layer-shell")?;
+        .context("wlr_layer_shell_v1 not available")?;
     let shm = Shm::bind(&globals, &qh).context("wl_shm not available")?;
 
-    // Create the top bar layer surface.
     let surface = compositor.create_surface(&qh);
     let layer = layer_shell.create_layer_surface(
         &qh,
         surface,
-        Layer::Top,
-        Some("dodona-topbar"),
-        None, // output: None → appears on all outputs
+        Layer::Background,
+        Some("dodona-background"),
+        None,
     );
 
-    // Anchor TOP + LEFT + RIGHT = full-width strip at the top.
-    // Width is determined by the compositor (anchored both sides); we set
-    // height only. Exclusive zone = height so tiled windows don't overlap
-    // the bar. Per docs/PALETTE.md §Application rules.
-    layer.set_anchor(Anchor::TOP | Anchor::LEFT | Anchor::RIGHT);
-    layer.set_size(0, BAR_HEIGHT);
-    layer.set_exclusive_zone(BAR_HEIGHT as i32);
+    layer.set_anchor(Anchor::TOP | Anchor::BOTTOM | Anchor::LEFT | Anchor::RIGHT);
+    layer.set_size(0, 0);
+    layer.set_exclusive_zone(0);
     layer.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
-
-    // Initial commit with no buffer — required before the compositor sends
-    // a configure event.
     layer.commit();
 
-    // Pre-allocate an shm pool big enough for any reasonable laptop width.
-    // 8K wide × 30 tall × 4 bytes = ~960KB. SlotPool manages slots within
-    // this; if we ever need a wider surface we'll resize here.
-    // TODO: resize pool dynamically if configure reports width > 8192.
-    let pool =
-        SlotPool::new(8192 * BAR_HEIGHT as usize * 4, &shm).context("failed to create SlotPool")?;
+    let pool = SlotPool::new(3840 * 2160 * 4, &shm)
+        .context("failed to create SlotPool")?;
+
+    let theme = Theme::load().context("failed to load theme")?;
+    let skia = SkiaSurface::new(1, 1).context("failed to create initial SkiaSurface")?;
+    let text_renderer = TextRenderer::new(theme.departure_mono, theme.commit_mono);
+    let app_state = Arc::new(AppState::new());
 
     let app = App {
         registry_state: RegistryState::new(&globals),
@@ -192,100 +384,38 @@ pub fn connect() -> anyhow::Result<(App, Connection, EventQueue<App>)> {
         layer,
         pool,
         width: 0,
-        height: BAR_HEIGHT,
+        height: 0,
         first_configure: true,
         keyboard: None,
         exit: false,
+        app_state,
+        needs_redraw: false,
+        skia,
+        text_renderer,
+        theme,
+        qh: qh.clone(),
     };
 
-    tracing::info!("connected to Wayland, created topbar layer surface");
+    tracing::info!("connected to Wayland, created Background layer surface (full screen, exclusive_zone=0)");
 
     Ok((app, conn, event_queue))
 }
 
-// --- SCTK trait implementations -------------------------------------------
-//
-// All trait method signatures verified against smithay-client-toolkit 0.19.2
-// docs.rs. The delegate macros at the bottom of this file generate the
-// wayland-client Dispatch impls that forward events to these handlers.
+// --- SCTK trait implementations ---
 
 impl CompositorHandler for App {
-    fn scale_factor_changed(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _surface: &wl_surface::WlSurface,
-        _new_factor: i32,
-    ) {
-        // TODO: re-render on scale change. For now we re-render on configure.
-    }
-
-    fn transform_changed(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _surface: &wl_surface::WlSurface,
-        _new_transform: wl_output::Transform,
-    ) {
-        // TODO: re-render on transform change.
-    }
-
-    fn frame(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _surface: &wl_surface::WlSurface,
-        _time: u32,
-    ) {
-        // Frame callback fired. For a static bar this is a no-op; future
-        // commits use this to drive animations (clock ms, scrolling graphs,
-        // pulse/glow on warnings, etc.).
-    }
-
-    fn surface_enter(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _surface: &wl_surface::WlSurface,
-        _output: &wl_output::WlOutput,
-    ) {
-    }
-
-    fn surface_leave(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _surface: &wl_surface::WlSurface,
-        _output: &wl_output::WlOutput,
-    ) {
-    }
+    fn scale_factor_changed(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _surface: &wl_surface::WlSurface, _new_factor: i32) {}
+    fn transform_changed(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _surface: &wl_surface::WlSurface, _new_transform: wl_output::Transform) {}
+    fn frame(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _surface: &wl_surface::WlSurface, _time: u32) {}
+    fn surface_enter(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _surface: &wl_surface::WlSurface, _output: &wl_output::WlOutput) {}
+    fn surface_leave(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _surface: &wl_surface::WlSurface, _output: &wl_output::WlOutput) {}
 }
 
 impl OutputHandler for App {
-    fn output_state(&mut self) -> &mut OutputState {
-        &mut self.output_state
-    }
-    fn new_output(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _output: wl_output::WlOutput,
-    ) {
-    }
-    fn update_output(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _output: wl_output::WlOutput,
-    ) {
-    }
-    fn output_destroyed(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _output: wl_output::WlOutput,
-    ) {
-    }
+    fn output_state(&mut self) -> &mut OutputState { &mut self.output_state }
+    fn new_output(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _output: wl_output::WlOutput) {}
+    fn update_output(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _output: wl_output::WlOutput) {}
+    fn output_destroyed(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _output: wl_output::WlOutput) {}
 }
 
 impl LayerShellHandler for App {
@@ -302,16 +432,14 @@ impl LayerShellHandler for App {
         configure: LayerSurfaceConfigure,
         _serial: u32,
     ) {
-        // When anchored LEFT|RIGHT the compositor picks the width; height
-        // echoes our set_size hint (BAR_HEIGHT).
         if configure.new_size.0 == 0 || configure.new_size.1 == 0 {
             self.width = 0;
-            self.height = BAR_HEIGHT;
+            self.height = 0;
         } else {
             self.width = configure.new_size.0;
             self.height = configure.new_size.1;
         }
-        tracing::debug!("configure: {}x{}", self.width, self.height);
+        tracing::info!("configure: {}x{}", self.width, self.height);
 
         if self.first_configure {
             self.first_configure = false;
@@ -322,123 +450,46 @@ impl LayerShellHandler for App {
 }
 
 impl SeatHandler for App {
-    fn seat_state(&mut self) -> &mut SeatState {
-        &mut self.seat_state
-    }
-
+    fn seat_state(&mut self) -> &mut SeatState { &mut self.seat_state }
     fn new_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
-
-    fn new_capability(
-        &mut self,
-        _conn: &Connection,
-        qh: &QueueHandle<Self>,
-        seat: wl_seat::WlSeat,
-        capability: Capability,
-    ) {
+    fn new_capability(&mut self, _conn: &Connection, qh: &QueueHandle<Self>, seat: wl_seat::WlSeat, capability: Capability) {
         if capability == Capability::Keyboard && self.keyboard.is_none() {
             match self.seat_state.get_keyboard(qh, &seat, None) {
-                Ok(kbd) => {
-                    self.keyboard = Some(kbd);
-                    tracing::debug!("keyboard bound");
-                }
+                Ok(kbd) => { self.keyboard = Some(kbd); tracing::debug!("keyboard bound"); }
                 Err(e) => tracing::warn!("failed to bind keyboard: {e:?}"),
             }
         }
     }
-
-    fn remove_capability(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _seat: wl_seat::WlSeat,
-        capability: Capability,
-    ) {
+    fn remove_capability(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _seat: wl_seat::WlSeat, capability: Capability) {
         if capability == Capability::Keyboard {
-            if let Some(kbd) = self.keyboard.take() {
-                kbd.release();
-            }
+            if let Some(kbd) = self.keyboard.take() { kbd.release(); }
         }
     }
-
     fn remove_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
 }
 
 impl KeyboardHandler for App {
-    fn enter(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _surface: &wl_surface::WlSurface,
-        _: u32,
-        _: &[u32],
-        _keysyms: &[Keysym],
-    ) {
-    }
-
-    fn leave(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _surface: &wl_surface::WlSurface,
-        _: u32,
-    ) {
-    }
-
-    fn press_key(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _: u32,
-        event: KeyEvent,
-    ) {
+    fn enter(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _surface: &wl_surface::WlSurface, _: u32, _: &[u32], _keysyms: &[Keysym]) {}
+    fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _surface: &wl_surface::WlSurface, _: u32) {}
+    fn press_key(&mut self, _conn: &Connection, _qh: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, event: KeyEvent) {
         if event.keysym == Keysym::Escape {
             tracing::info!("ESC pressed, exiting");
             self.exit = true;
         }
     }
-
-    fn release_key(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _: u32,
-        _event: KeyEvent,
-    ) {
-    }
-
-    fn update_modifiers(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _serial: u32,
-        _modifiers: Modifiers,
-        _layout: u32,
-    ) {
-    }
+    fn release_key(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, _event: KeyEvent) {}
+    fn update_modifiers(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _serial: u32, _modifiers: Modifiers, _layout: u32) {}
 }
 
 impl ShmHandler for App {
-    fn shm_state(&mut self) -> &mut Shm {
-        &mut self.shm
-    }
+    fn shm_state(&mut self) -> &mut Shm { &mut self.shm }
 }
 
 impl ProvidesRegistryState for App {
-    fn registry(&mut self) -> &mut RegistryState {
-        &mut self.registry_state
-    }
+    fn registry(&mut self) -> &mut RegistryState { &mut self.registry_state }
     registry_handlers![OutputState, SeatState];
 }
 
-// --- delegate macros (order does not matter) ------------------------------
-// These generate the wayland-client `Dispatch` impls that forward protocol
-// events to the trait impls above. Verified list from
-// https://docs.rs/smithay-client-toolkit/0.19.2/smithay_client_toolkit/index.html#macros
 delegate_compositor!(App);
 delegate_output!(App);
 delegate_shm!(App);

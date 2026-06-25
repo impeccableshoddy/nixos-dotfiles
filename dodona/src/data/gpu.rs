@@ -18,3 +18,6 @@
 //! - Implement `read_gpu_busy_percent() -> Result<u8>` scanning all cardN paths
 //! - Spawn async task polling at 500ms
 //! - On AMD APU (target hardware), card0 is the APU's integrated GPU
+
+use crate::core::event_loop::UiEvent;
+pub fn spawn(_tx: calloop::channel::SyncSender<UiEvent>) {}

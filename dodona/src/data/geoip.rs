@@ -23,3 +23,6 @@
 //! - Implement `lookup(ip: IpAddr) -> Option<Country>` returning ISO country code
 //! - Implement graceful fallback when DB file is missing (log WARN, return None)
 //! - Coordinate with `widgets::globe` for arc rendering
+
+use crate::core::event_loop::UiEvent;
+pub fn spawn(_tx: calloop::channel::SyncSender<UiEvent>) {}
